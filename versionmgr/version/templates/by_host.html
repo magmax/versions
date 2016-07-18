@@ -9,26 +9,35 @@
 <body>
   <h1>Application version by host</h1>
 
+  {% for cluster, myhosts in versions.items %}
+
+  <h2>{{ cluster }}</h2>
 
   <table class="table table-condensed table-striped">
     <thead>
       <tr>
         <th></th>
-        {% for application in applications %}
+        {% for host, myapps in myhosts.items %}
+        {% for application in myapps %}
         <th>{{ application }}</th>
+        {% endfor %}
         {% endfor %}
       </tr>
     </thead>
     <tbody>
-    {% for host in hosts %}
+    {% for host, myapps in myhosts.items %}
     <tr>
       <th>{{ host }}</th>
-      {% for application in applications %}
-      <td>{{ versions|get_item:host|get_item:application|get_item:'name' }}</td>
+      {% for application, data in myapps.items %}
+      <td>{{ data.name }}</td>
       {% endfor %}
     </tr>
     {% endfor %}
     <tbody>
   </table>
+
+  {% endfor %}
+
+
 </body>
 </html>

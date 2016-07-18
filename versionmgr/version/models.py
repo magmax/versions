@@ -1,8 +1,16 @@
 from django.db import models
 
 
+class Cluster(models.Model):
+    name = models.CharField(max_length=100)
+
+    def __str__(self):
+        return self.name
+
+
 class Host(models.Model):
     name = models.CharField(max_length=100)
+    cluster = models.ForeignKey(Cluster, blank=True, null=True)
 
     def __str__(self):
         return self.name
