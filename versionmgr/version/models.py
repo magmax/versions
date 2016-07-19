@@ -29,6 +29,7 @@ class Version(models.Model):
     name = models.CharField(max_length=100, blank=True, null=True)
     host = models.ForeignKey(Host, blank=True, null=True)
     application = models.ForeignKey(Application, blank=True, null=True)
+    updated = models.DateTimeField(auto_now=True)
 
     def __str__(self):
         return self.name

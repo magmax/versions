@@ -1,43 +1,63 @@
-{% load version_tags %}
+{% load humanize %}
 <html>
   <head>
     <title></title>
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap-theme.min.css" integrity="sha384-fLW2N01lMqjakBkx3l/M9EahuwpSfeNvV63J5ezn3uZzapT0u7EYsXMjQV+0En5r" crossorigin="anonymous">
+    <script
+			  src="https://code.jquery.com/jquery-2.2.4.min.js"
+			  integrity="sha256-BbhdlvQf/xTY9gja0Dq3HiwQF8LaCRTXxZKRutelT44="
+			  crossorigin="anonymous"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js" integrity="sha384-0mSbJDEHialfmuBBQP6A4Qrprq5OVfW37PRR3j5ELqxss1yVqOtnepnHVP9aJ7xS" crossorigin="anonymous"></script>
   </head>
 <body>
-  <h1>Application version by host</h1>
+  <div class="container">
 
-  {% for cluster, myhosts in versions.items %}
+    <h1>Application version by host</h1>
 
-  <h2>{{ cluster }}</h2>
 
-  <table class="table table-condensed table-striped">
-    <thead>
-      <tr>
-        <th></th>
+    {% for cluster, myhosts in versions.items %}
+
+    <h2>{{ cluster }}</h2>
+
+    <table class="table table-condensed table-striped">
+      <thead>
+        <tr>
+          <th></th>
+          {% for host, myapps in myhosts.items %}
+          {%   for application in myapps %}
+          <th>{{ application }}</th>
+          {%   endfor %}
+          {% endfor %}
+        </tr>
+      </thead>
+      <tbody>
         {% for host, myapps in myhosts.items %}
-        {% for application in myapps %}
-        <th>{{ application }}</th>
+        <tr>
+          <th>{{ host }}</th>
+          {% for application, data in myapps.items %}
+          <td {% if data.outdated %} class="warning"{% endif %}>
+            <span style="white-space: nowrap;" data-toggle="popover" data-placement="left" title="Last update on {{ data.updated }} ({{ data.updated | naturaltime}})">
+              {% if data.outdated %}
+              <i class="glyphicon glyphicon-warning-sign"></i>
+              {% endif %}
+              {{ data.name }}
+            </span>
+          </td>
+          {% endfor %}
+        </tr>
         {% endfor %}
-        {% endfor %}
-      </tr>
-    </thead>
-    <tbody>
-    {% for host, myapps in myhosts.items %}
-    <tr>
-      <th>{{ host }}</th>
-      {% for application, data in myapps.items %}
-      <td>{{ data.name }}</td>
-      {% endfor %}
-    </tr>
+      <tbody>
+    </table>
     {% endfor %}
-    <tbody>
-  </table>
 
-  {% endfor %}
+  </div>
 
+  <script>
+    $(function () {
+      $('[data-toggle="tooltip"]').tooltip()
+    })
+  </script>
 
 </body>
 </html>

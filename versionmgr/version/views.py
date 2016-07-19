@@ -1,8 +1,10 @@
 import json
+import datetime
 from collections import OrderedDict
 from django.shortcuts import render
 from django.http import JsonResponse
 from django.views.decorators.http import require_POST, require_GET
+from django.utils import timezone
 
 from . import models
 
@@ -47,6 +49,8 @@ def version(request):
 @require_GET
 def show_by_host(request):
     data = dict(versions=OrderedDict())
+    time_limit = timezone.now() - datetime.timedelta(hours=6)
+    data['time_limit'] = time_limit
     for version in models.Version.objects.all():
         cluster = version.host.cluster.name if version.host.cluster else "<none>"
         host = version.host.name
@@ -57,6 +61,8 @@ def show_by_host(request):
             data['versions'][cluster][host] = OrderedDict()
         data['versions'][cluster][host][app] = dict (
             name=version.name,
+            updated=version.updated,
+            outdated=version.updated < time_limit,
         )
 
     return render(request, 'by_host.html', data)
