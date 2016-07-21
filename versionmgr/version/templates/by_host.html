@@ -1,4 +1,5 @@
 {% load humanize %}
+{% load version_tags %}
 <html>
   <head>
     <title></title>
@@ -18,16 +19,14 @@
 
     {% for cluster, myhosts in versions.items %}
 
-    <h2>{{ cluster }}</h2>
+    <h2>Cluster "{{ cluster }}"</h2>
 
     <table class="table table-condensed table-striped">
       <thead>
         <tr>
-          <th></th>
-          {% for host, myapps in myhosts.items %}
-          {%   for application in myapps %}
+          <th>Host</th>
+          {% for application in apps %}
           <th>{{ application }}</th>
-          {%   endfor %}
           {% endfor %}
         </tr>
       </thead>
@@ -35,7 +34,8 @@
         {% for host, myapps in myhosts.items %}
         <tr>
           <th>{{ host }}</th>
-          {% for application, data in myapps.items %}
+          {% for application in apps %}
+	  {% with myapps|get_item:application as data %}
           <td {% if data.outdated %} class="warning"{% endif %}>
             <span style="white-space: nowrap;" data-toggle="popover" data-placement="left" title="Last update on {{ data.updated }} ({{ data.updated | naturaltime}})">
               {% if data.outdated %}
@@ -44,6 +44,7 @@
               {{ data.name }}
             </span>
           </td>
+	  {% endwith %}
           {% endfor %}
         </tr>
         {% endfor %}

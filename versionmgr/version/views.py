@@ -40,29 +40,35 @@ def version(request):
     version.application = app
     version.name = data['version']
 
-    if prev_host != host.name or prev_app != app.name or prev_version != version.name:
-        version.save()
+    #if prev_host != host.name or prev_app != app.name or prev_version != version.name:
+    version.save()
 
     return JsonResponse(dict(result='ok', previous=dict(host=prev_host, application=prev_app, version=prev_version, cluster=prev_cluster)))
 
 
 @require_GET
 def show_by_host(request):
-    data = dict(versions=OrderedDict())
+    data = {}
+    versions = OrderedDict()
+    apps = set()
     time_limit = timezone.now() - datetime.timedelta(hours=6)
     data['time_limit'] = time_limit
-    for version in models.Version.objects.all():
+    for version in models.Version.objects.order_by('host__name'):
         cluster = version.host.cluster.name if version.host.cluster else "<none>"
         host = version.host.name
         app = version.application.name
-        if cluster not in data['versions']:
-            data['versions'][cluster] = OrderedDict()
-        if host not in data['versions'][cluster]:
-            data['versions'][cluster][host] = OrderedDict()
-        data['versions'][cluster][host][app] = dict (
+        apps.add(app)
+        if cluster not in versions:
+            versions[cluster] = OrderedDict()
+        if host not in versions[cluster]:
+            versions[cluster][host] = OrderedDict()
+        versions[cluster][host][app] = dict (
             name=version.name,
             updated=version.updated,
             outdated=version.updated < time_limit,
         )
-
+        data = dict(
+            versions=versions,
+            apps=sorted(apps),
+        )
     return render(request, 'by_host.html', data)
