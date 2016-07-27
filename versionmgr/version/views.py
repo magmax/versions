@@ -62,3 +62,9 @@ def show_by_host(request):
             apps=sorted(apps),
         )
     return render(request, 'by_host.html', data)
+
+
+@require_GET
+def cluster(request, pk):
+    c = models.Cluster.objects.get(pk=pk)
+    return render(request, 'cluster.html', {'cluster':c})

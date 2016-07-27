@@ -3,7 +3,46 @@ from django.contrib import admin
 from . import models
 
 
-admin.site.register(models.Cluster)
-admin.site.register(models.Host)
-admin.site.register(models.Application)
+class ApplicationAttributeInline(admin.TabularInline):
+    model = models.ApplicationAttribute
+
+
+class ClusterAttributeInline(admin.TabularInline):
+    model = models.ClusterAttribute
+
+
+class HostAttributeInline(admin.TabularInline):
+    model = models.HostAttribute
+
+
+class HostInline(admin.TabularInline):
+    model = models.Host
+
+
+class ApplicationAdmin(admin.ModelAdmin):
+    list_display = ('name', 'description')
+    inlines = [
+        ApplicationAttributeInline,
+    ]
+
+
+class ClusterAdmin(admin.ModelAdmin):
+    inlines = [
+        HostInline,
+        ClusterAttributeInline,
+    ]
+
+
+class HostAdmin(admin.ModelAdmin):
+    inlines = [
+        HostAttributeInline,
+    ]
+
+
+admin.site.register(models.Cluster, ClusterAdmin)
+admin.site.register(models.Host, HostAdmin)
+admin.site.register(models.Application, ApplicationAdmin)
 admin.site.register(models.Version)
+admin.site.register(models.ClusterAttribute)
+admin.site.register(models.HostAttribute)
+admin.site.register(models.ApplicationAttribute)

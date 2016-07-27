@@ -8,9 +8,27 @@ class Cluster(models.Model):
         return self.name
 
 
+class ClusterAttribute(models.Model):
+    name = models.CharField(max_length=100)
+    value = models.TextField()
+    cluster = models.ForeignKey(Cluster, related_name="attributes")
+
+    def __str__(self):
+        return self.name
+
+
 class Host(models.Model):
     name = models.CharField(max_length=100)
-    cluster = models.ForeignKey(Cluster, blank=True, null=True)
+    cluster = models.ForeignKey(Cluster, blank=True, null=True, related_name="hosts")
+
+    def __str__(self):
+        return self.name
+
+
+class HostAttribute(models.Model):
+    name = models.CharField(max_length=100)
+    value = models.TextField()
+    host = models.ForeignKey(Host, related_name="attributes")
 
     def __str__(self):
         return self.name
@@ -19,6 +37,15 @@ class Host(models.Model):
 class Application(models.Model):
     name = models.CharField(max_length=100)
     description = models.CharField(max_length=200, blank=True, null=True)
+
+    def __str__(self):
+        return self.name
+
+
+class ApplicationAttribute(models.Model):
+    name = models.CharField(max_length=100)
+    value = models.TextField()
+    application = models.ForeignKey(Application, related_name="attributes")
 
     def __str__(self):
         return self.name

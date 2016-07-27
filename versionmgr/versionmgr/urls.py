@@ -22,5 +22,6 @@ from version import views
 urlpatterns = [
     url(r'^version/$', views.version),
     url(r'^version/by_host/', views.show_by_host),
+    url(r'^cluster/(?P<pk>\d+)/?$', views.cluster),
     url(r'^admin/', admin.site.urls),
 ]
