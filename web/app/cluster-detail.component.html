@@ -1,0 +1,16 @@
+<div *ngIf="cluster">
+  <h2>{{cluster.name}} details!</h2>
+  <div><label>id: </label>{{cluster.id}}</div>
+  <div>
+    <label>name: </label>
+    <input [(ngModel)]="cluster.name" placeholder="name"/>
+  </div>
+  <h3>Hosts</h3>
+  <li *ngFor="let host of hosts"
+      (click)="gotoHostDetail(host)" >
+
+    {{host.name}}
+  </li>
+
+</div>
+<button (click)="goBack()">Back</button>

@@ -1,0 +1,12 @@
+<div *ngIf="host">
+  <h2>{{host.name}} details!</h2>
+  <div><label>id: </label>{{host.id}}</div>
+  <div>
+    <label>name: </label>
+    <input [(ngModel)]="host.name" placeholder="name"/>
+  </div>
+  <div><label>label: </label>{{host.label}}</div>
+</div>
+<button (click)="goBack()">Back</button>
+
+<router-outlet></router-outlet>

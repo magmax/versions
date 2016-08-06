@@ -12,11 +12,11 @@ import (
 
 var empty = "<NOT SET>"
 var url = flag.String("url", empty, "Url to connect to")
-var host = flag.String("host", empty, "Hostname")
-var cluster = flag.String("cluster", empty, "Cluster the host belongs to")
+var deployment = flag.String("deployment", empty, "Optional. To separate different installations on same host.")
 var application = flag.String("application", empty, "Application")
 var version = flag.String("version", empty, "Version number")
-var uri = flag.String("uri", empty, "URI to access the resource")
+var host = flag.String("host", empty, "Hostname")
+
 
 func send(url *string, data map[string]string) {
   jsonStr, err := json.Marshal(data)
@@ -43,10 +43,6 @@ func main() {
     hostname, _ := os.Hostname()
     host = &hostname // beware!
   }
-  if (*uri == empty) {
-    fmt.Println("URI is mandatory")
-    os.Exit(1)
-  }
   if (*url == empty) {
     fmt.Println("URL is mandatory")
     os.Exit(1)
@@ -64,11 +60,10 @@ func main() {
   var data map[string]string
   data = make(map[string]string)
   data["host"] = *host
-  data["uri"] = *uri
+  if (*deployment != empty) {
+    data["deployment"] = *cluster
+  }
   data["application"] = *application
   data["version"] = *version
-  if (*cluster != empty) {
-    data["cluster"] = *cluster
-  }
   send(url, data)
 }

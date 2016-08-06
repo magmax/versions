@@ -4,7 +4,7 @@
 <h1>Cluster {{ cluster.name }}</h1>
 <div class="well">
   <dl class="dl-horizontal">
-    {% for attr in cluster.attributes.all %}
+    {% for attr in cluster.ordered_attributes %}
     <dt>{{ attr.name }}</dt>
     <dd>{{ attr.value|md|safe }}</dd>
     {% endfor %}

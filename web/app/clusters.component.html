@@ -1,0 +1,20 @@
+<h2>Cluster list</h2>
+
+<li *ngFor="let cluster of clusters"
+    [class.selected]="cluster === selectedCluster"
+    (click)="gotoDetail(cluster)" >
+
+  {{cluster.name}}
+</li>
+
+    <div *ngIf="selectedCluster">
+      <h2>{{selectedCluster.name}} details!</h2>
+      <div><label>id: </label>{{selectedCluster.id}}</div>
+      <div>
+        <label>name: </label>
+        <input [(ngModel)]="selectedCluster.name" placeholder="name"/>
+      </div>
+      <my-cluster-detail [cluster]="selectedCluster"></my-cluster-detail>
+    </div>
+
+<router-outlet></router-outlet>

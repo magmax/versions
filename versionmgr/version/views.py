@@ -68,3 +68,15 @@ def show_by_host(request):
 def cluster(request, pk):
     c = models.Cluster.objects.get(pk=pk)
     return render(request, 'cluster.html', {'cluster':c})
+
+@require_GET
+def cluster_list(request):
+    clusters = []
+    for cluster in models.Cluster.objects.all():
+        clusters.append(
+            dict(
+                name=cluster.name,
+                id=cluster.id,
+            )
+        )
+    return JsonResponse(dict(clusters=clusters))
