@@ -2,3 +2,8 @@ venv/
 *~
 db.sqlite3
 __pycache__/
+*.log
+web/app/*.js
+web/app/*.map
+web/node_modules/
+web/typings/
