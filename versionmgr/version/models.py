@@ -41,7 +41,6 @@ class HostAttribute(models.Model):
 class Deployment(models.Model):
     name = models.CharField(max_length=100)
     label = models.CharField(max_length=100, blank=True, null=True)
-    host = models.ForeignKey(Host, blank=True, null=True)
 
     def __str__(self):
         return self.label
@@ -75,10 +74,18 @@ class ApplicationAttribute(models.Model):
 
 
 class Version(models.Model):
-    uri = models.CharField(max_length=200)
     name = models.CharField(max_length=100, blank=True, null=True)
+
+    def __str__(self):
+        return self.name
+
+
+class AppInstance(models.Model):
+    version = models.ForeignKey(Version)
+    host = models.ForeignKey(Host)
+    application = models.ForeignKey(Application)
     deployment = models.ForeignKey(Deployment, blank=True, null=True)
-    application = models.ForeignKey(Application, blank=True, null=True)
+
     updated = models.DateTimeField(auto_now=True)
 
     def __str__(self):

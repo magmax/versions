@@ -12,28 +12,32 @@ from . import models
 @require_POST
 def version(request):
     data = json.loads(request.body.decode("utf-8"))
-    host, host_created = models.Host.objects.get_or_create(
+    host, _ = models.Host.objects.get_or_create(
         name=data.get('host') or request.META['REMOTE_HOST']
     )
     app, _ = models.Application.objects.get_or_create(
         name=data['application']
     )
     version, _ = models.Version.objects.get_or_create(
-        uri=data['uri'],
+        name=data['version']
+    )
+    deployment, _ = models.Deployment.objects.get_or_create(
+        name=data.get('deployment', "default")
     )
 
-    prev_host = version.host.name if version.host else ""
-    prev_app = version.application.name if version.application else ""
-    prev_version = version.name
+    appinstance, created = models.AppInstance.objects.get_or_create(
+        host=host,
+        application=app,
+        deployment=deployment,
+        defaults=dict(
+            version=version
+        )
+    )
+    prev_version = None if created else appinstance.version.name
+    appinstance.version = version
+    appinstance.save()
 
-    version.host = host
-    version.application = app
-    version.name = data['version']
-
-    #if prev_host != host.name or prev_app != app.name or prev_version != version.name:
-    version.save()
-
-    return JsonResponse(dict(result='ok', previous=dict(host=prev_host, application=prev_app, version=prev_version)))
+    return JsonResponse(dict(result='ok', previous=dict(version=prev_version)))
 
 
 @require_GET
