@@ -1,10 +1,6 @@
 import json
-import datetime
-from collections import OrderedDict
-from django.shortcuts import render
 from django.http import JsonResponse
 from django.views.decorators.http import require_POST, require_GET
-from django.utils import timezone
 
 from . import models
 

@@ -23,7 +23,12 @@ class ClusterAttribute(models.Model):
 class Host(models.Model):
     name = models.CharField(max_length=100)
     label = models.CharField(max_length=100, blank=True, null=True)
-    cluster = models.ForeignKey(Cluster, blank=True, null=True, related_name="hosts")
+    cluster = models.ForeignKey(
+        Cluster,
+        blank=True,
+        null=True,
+        related_name="hosts",
+    )
 
     def __str__(self):
         return self.name
