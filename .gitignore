@@ -1,7 +1,9 @@
 venv/
 *~
 db.sqlite3
+.coverage
 __pycache__/
+.cache/
 *.log
 web/app/*.js
 web/app/*.map

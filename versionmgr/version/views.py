@@ -41,34 +41,6 @@ def version(request):
 
 
 @require_GET
-def show_by_host(request):
-    data = {}
-    versions = OrderedDict()
-    apps = set()
-    time_limit = timezone.now() - datetime.timedelta(hours=6)
-    data['time_limit'] = time_limit
-    for version in models.Version.objects.order_by('host__name'):
-        cluster = version.host.cluster.name if version.host.cluster else "<none>"
-        host = version.host.name
-        app = version.application.name
-        apps.add(app)
-        if cluster not in versions:
-            versions[cluster] = OrderedDict()
-        if host not in versions[cluster]:
-            versions[cluster][host] = OrderedDict()
-        versions[cluster][host][app] = dict (
-            name=version.name,
-            updated=version.updated,
-            outdated=version.updated < time_limit,
-        )
-        data = dict(
-            versions=versions,
-            apps=sorted(apps),
-        )
-    return render(request, 'by_host.html', data)
-
-
-@require_GET
 def cluster(request, pk):
     c = models.Cluster.objects.get(pk=pk)
     data = dict(

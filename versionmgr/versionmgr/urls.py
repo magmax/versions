@@ -20,9 +20,8 @@ from version import views
 
 
 urlpatterns = [
-    url(r'^version/$', views.version),  # to be deprecated
-    url(r'^version/by_host/', views.show_by_host),  #to be deprecated
-    url(r'^cluster/(?P<pk>\d+)/?$', views.cluster), # to be deprecated
+    url(r'^version/$', views.version),
+    url(r'^cluster/(?P<pk>\d+)/?$', views.cluster),
     url(r'^cluster/?$', views.cluster_list),
     url(r'^admin/', admin.site.urls),
 ]
