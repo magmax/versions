@@ -1,0 +1,26 @@
+{% extends 'base.html' %}
+
+{% block breadcrumb %}
+<li><a href="{% url 'cluster' cluster.id %}">{{ cluster.name }}</a></li>
+{% endblock %}
+
+{% block content %}
+<h1>Cluster {{ cluster.name }}</h1>
+<div class="well">
+  <dl class="dl-horizontal">
+    {% for name, value in cluster.attributes %}
+    <dt>{{ name }}</dt>
+    <dd>{{ value|md|safe }}</dd>
+    {% endfor %}
+  </dl>
+</div>
+
+<h2>Hosts</h2>
+<div class="hosts">
+  <ul>
+    {% for id, name in cluster.hosts %}
+    {% include 'frag_host.html' with id=id name=name label=name only %}
+    {% endfor %}
+  </ul>
+</div>
+{% endblock %}

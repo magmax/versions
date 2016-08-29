@@ -9,8 +9,12 @@ const routes: RouterConfig = [
     component: ClustersComponent
   },
   {
+    path: '#/clusters',
+    component: ClustersComponent
+  },
+  {
     path: '',
-    redirectTo: '/clusters',
+    redirectTo: '/#/clusters',
     pathMatch: 'full'
   },
   {

@@ -48,7 +48,7 @@ class Deployment(models.Model):
     label = models.CharField(max_length=100, blank=True, null=True)
 
     def __str__(self):
-        return self.label
+        return self.label or self.name
 
 
 class DeploymentAttribute(models.Model):
@@ -86,12 +86,18 @@ class Version(models.Model):
 
 
 class AppInstance(models.Model):
-    version = models.ForeignKey(Version)
-    host = models.ForeignKey(Host)
-    application = models.ForeignKey(Application)
-    deployment = models.ForeignKey(Deployment, blank=True, null=True)
+    version = models.ForeignKey(Version, related_name="app_instances")
+    host = models.ForeignKey(Host, related_name="app_instances")
+    application = models.ForeignKey(Application, related_name="app_instances")
+    deployment = models.ForeignKey(
+        Deployment, related_name="app_instances", blank=True, null=True)
 
     updated = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return self.name
+        return "%s (%s) at %s/%s" % (
+            self.application,
+            self.version,
+            self.host,
+            self.deployment,
+        )

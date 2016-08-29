@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+
+{% block breadcrumb %}
+<li>application</li>
+<li><a href="{% url 'application' app.id %}">{{ app.name }}</a></li>
+{% endblock %}
+
+{% block content %}
+<h1>Application {{ app.name }}</h1>
+<div class="well">
+  <dl class="dl-horizontal">
+    {% for name, value in app.attributes %}
+    <dt>{{ name }}</dt>
+    <dd>{{ value|md|safe }}</dd>
+    {% endfor %}
+  </dl>
+</div>
+
+<h2>Installations</h2>
+<div class="installations">
+  <table class="table table-condensed table-striped">
+    <thead>
+      <tr>
+        <th>Host</th>
+        <th>Deployment</th>
+        <th>Version</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for instance in app.instances %}
+      <tr>
+        <td>{% include 'frag_host.html' with id=instance.host.id name=instance.host.name only %}</td>
+        <td>{{ instance.deployment.name }}</td>
+        <td>{{ instance.version.name }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

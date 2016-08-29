@@ -23,5 +23,13 @@ urlpatterns = [
     url(r'^version/$', views.version),
     url(r'^cluster/(?P<pk>\d+)/?$', views.cluster),
     url(r'^cluster/?$', views.cluster_list),
+    url(r'^html/cluster/?$', views.cluster_list,
+        dict(mode='html'), name="home"),
+    url(r'^html/cluster/(?P<pk>\d+)/?$', views.cluster,
+        dict(mode='html'), name="cluster"),
+    url(r'^html/host/(?P<pk>\d+)/?$', views.host,
+        dict(mode='html'), name="host"),
+    url(r'^html/application/(?P<pk>\d+)/?$', views.application,
+        dict(mode='html'), name="application"),
     url(r'^admin/', admin.site.urls),
 ]

@@ -19,6 +19,14 @@ class HostInline(admin.TabularInline):
     model = models.Host
 
 
+class DeploymentInline(admin.TabularInline):
+    model = models.Deployment
+
+
+class AppInstanceInline(admin.TabularInline):
+    model = models.AppInstance
+
+
 class ApplicationAdmin(admin.ModelAdmin):
     list_display = ('name', 'description')
     inlines = [
@@ -35,6 +43,7 @@ class ClusterAdmin(admin.ModelAdmin):
 
 class HostAdmin(admin.ModelAdmin):
     inlines = [
+        AppInstanceInline,
         HostAttributeInline,
     ]
 
@@ -43,6 +52,8 @@ admin.site.register(models.Cluster, ClusterAdmin)
 admin.site.register(models.Host, HostAdmin)
 admin.site.register(models.Application, ApplicationAdmin)
 admin.site.register(models.Version)
+admin.site.register(models.Deployment)
+admin.site.register(models.AppInstance)
 admin.site.register(models.ClusterAttribute)
 admin.site.register(models.HostAttribute)
 admin.site.register(models.ApplicationAttribute)

@@ -1,8 +1,12 @@
 import json
+import logging
 from django.http import JsonResponse
 from django.views.decorators.http import require_POST, require_GET
+from django.shortcuts import render
 
 from . import models
+
+logger = logging.getLogger(__name__)
 
 
 @require_POST
@@ -37,22 +41,105 @@ def version(request):
 
 
 @require_GET
-def cluster(request, pk):
+def cluster(request, pk, mode="json"):
     c = models.Cluster.objects.get(pk=pk)
     data = dict(
         id=c.id,
-        name=c.name
+        name=c.name,
+        attributes={
+            (x.name, x.value) for x in c.attributes.all()
+        },
+        hosts={
+            (x.id, x.name) for x in c.hosts.all()
+        },
     )
-    return JsonResponse(dict(cluster=data))
+    if mode == 'json':
+        return JsonResponse(dict(cluster=data))
+    return render(request, 'cluster.html', dict(cluster=data))
+
 
 @require_GET
-def cluster_list(request):
+def cluster_list(request, mode="json"):
     clusters = []
     for cluster in models.Cluster.objects.all():
         clusters.append(
             dict(
                 name=cluster.name,
                 id=cluster.id,
+                hosts={(x.id, x.name) for x in cluster.hosts.all()}
             )
         )
-    return JsonResponse(dict(clusters=clusters))
+    if mode == 'json':
+        return JsonResponse(dict(clusters=clusters))
+    return render(request, 'clusters.html', dict(clusters=clusters))
+
+
+@require_GET
+def host(request, pk, mode="json"):
+    h = models.Host.objects.get(pk=pk)
+    appinstances = h.app_instances.all()
+    deployments = {}
+    for appinstance in appinstances:
+        deployment = appinstance.deployment
+        if deployment.id not in deployments:
+            deployments[deployment.id] = dict(name=deployment.name, apps=[])
+        deployments[deployment.id]['apps'].append(
+            dict(
+                name=deployment.name,
+                application=dict(
+                    id=appinstance.application.id,
+                    name=appinstance.application.name,
+                ),
+                version=dict(
+                    id=appinstance.version.id,
+                    name=appinstance.version.name,
+                )
+            )
+        )
+    data = dict(
+        id=h.id,
+        name=h.name,
+        label=h.label,
+        cluster=dict(
+            id=h.cluster.id,
+            name=h.cluster.name
+        ),
+        attributes={
+            (x.name, x.value) for x in h.attributes.all()
+        },
+        deployments=deployments,
+    )
+    if mode == 'json':
+        return JsonResponse(dict(host=data))
+    return render(request, 'host.html', dict(host=data))
+
+
+@require_GET
+def application(request, pk, mode="json"):
+    a = models.Application.objects.get(pk=pk)
+    instances = a.app_instances.all()
+    data = dict(
+        id=a.id,
+        name=a.label or a.name,
+        description=a.description,
+        instances=[
+            dict(
+                host=dict(
+                    id=x.host.id,
+                    name=x.host.name,
+                ),
+                deployment=dict(
+                    id=x.deployment.id,
+                    name=x.deployment.name,
+                ),
+                version=dict(
+                    id=x.version.id,
+                    name=x.version.name,
+                ),
+            )
+            for x in instances
+        ]
+    )
+    if mode == 'json':
+        return JsonResponse(dict(app=data))
+    return render(request, 'application.html', dict(app=data))

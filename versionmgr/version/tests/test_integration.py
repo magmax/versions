@@ -4,10 +4,16 @@ import json
 
 from . import factories
 
+
 class InsertionByPublicAPITest(TestCase):
     def test_basic_insertion(self):
         c = Client()
-        response = c.post('/version/', json.dumps({'host': 'foo', 'application': 'bar', 'version': '1.2.3.4'}), content_type="application/json")
+        data = {'host': 'foo', 'application': 'bar', 'version': '1.2.3.4'}
+        response = c.post(
+            '/version/',
+            json.dumps(data),
+            content_type="application/json",
+        )
 
         assert response.status_code == 200
         assert response.json()['result'] == 'ok'
@@ -15,10 +21,14 @@ class InsertionByPublicAPITest(TestCase):
 
     def test_insert_twice(self):
         c = Client()
-        response = c.post('/version/', json.dumps({'host': 'foo', 'application': 'bar', 'version': '0.0.1'}), content_type="application/json")
+        data = {'host': 'foo', 'application': 'bar', 'version': '0.0.1'}
+        response = c.post('/version/', json.dumps(data),
+                          content_type="application/json")
         assert response.json()['previous']['version'] is None
 
-        response = c.post('/version/', json.dumps({'host': 'foo', 'application': 'bar', 'version': '0.0.2'}), content_type="application/json")
+        data = {'host': 'foo', 'application': 'bar', 'version': '0.0.2'}
+        response = c.post('/version/', json.dumps(data),
+                          content_type="application/json")
         assert response.json()['previous']['version'] == '0.0.1'
 
 
@@ -38,5 +48,7 @@ class RetrieveByPublicAPITest(TestCase):
         cluster = factories.ClusterFactory()
 
         c = Client()
-        response = c.get('/cluster/%s' % cluster.id, content_type="application/json")
+        response = c.get('/cluster/%s' % cluster.id,
+                         content_type="application/json")
         body = response.json()
+        assert body is not None
