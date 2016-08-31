@@ -31,5 +31,7 @@ urlpatterns = [
         dict(mode='html'), name="host"),
     url(r'^html/application/(?P<pk>\d+)/?$', views.application,
         dict(mode='html'), name="application"),
+    url(r'^html/deployment/(?P<pk>\d+)/?$', views.deployment,
+        dict(mode='html'), name="deployment"),
     url(r'^admin/', admin.site.urls),
 ]

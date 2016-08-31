@@ -1,14 +1,14 @@
 {% extends 'base.html' %}
 
 {% block breadcrumb %}
-<li>application <a href="{% url 'application' app.id %}">{{ app.name }}</a></li>
+<li>deployment <a href="url 'deployment' dep.id ">{{ dep.name }}</a></li>
 {% endblock %}
 
 {% block content %}
-<h1>Application {{ app.name }}</h1>
+<h1>Deployment {{ dep.name }}</h1>
 <div class="well">
   <dl class="dl-horizontal">
-    {% for name, value in app.attributes %}
+    {% for name, value in dep.attributes %}
     <dt>{{ name }}</dt>
     <dd>{{ value|md|safe }}</dd>
     {% endfor %}
@@ -21,15 +21,15 @@
     <thead>
       <tr>
         <th>Host</th>
-        <th>Deployment</th>
+        <th>Application</th>
         <th>Version</th>
       </tr>
     </thead>
     <tbody>
-      {% for instance in app.instances %}
+      {% for instance in dep.instances %}
       <tr>
         <td>{% include 'frag_host.html' with id=instance.host.id name=instance.host.name only %}</td>
-        <td>{% include 'frag_deployment.html' with id=instance.deployment.id name=instance.deployment.name only %}</td>
+        <td>{% include 'frag_app.html' with id=instance.application.id name=instance.application.name only %}</td>
         <td>{{ instance.version.name }}</td>
       </tr>
       {% endfor %}

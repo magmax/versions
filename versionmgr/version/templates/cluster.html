@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 
 {% block breadcrumb %}
-<li><a href="{% url 'cluster' cluster.id %}">{{ cluster.name }}</a></li>
+<li>cluster <a href="{% url 'cluster' cluster.id %}">{{ cluster.name }}</a></li>
 {% endblock %}
 
 {% block content %}

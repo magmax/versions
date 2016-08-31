@@ -152,3 +152,35 @@ def application(request, pk, mode="json"):
     if mode == 'json':
         return JsonResponse(dict(app=data))
     return render(request, 'application.html', dict(app=data))
+
+@require_GET
+def deployment(request, pk, mode="json"):
+    d = models.Deployment.objects.get(pk=pk)
+    instances = d.app_instances.all()
+    data = dict(
+        id=d.id,
+        name=d.label or d.name,
+        instances=[
+            dict(
+                host=dict(
+                    id=x.host.id,
+                    name=x.host.name,
+                ),
+                application=dict(
+                    id=x.application.id,
+                    name=x.application.name,
+                ),
+                version=dict(
+                    id=x.version.id,
+                    name=x.version.name,
+                ),
+            )
+            for x in instances
+        ],
+        attributes={
+            (x.name, x.value) for x in d.attributes.all()
+        },
+    )
+    if mode == 'json':
+        return JsonResponse(dict(deployment=data))
+    return render(request, 'deployment.html', dict(dep=data))
