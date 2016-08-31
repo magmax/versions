@@ -96,19 +96,25 @@ def host(request, pk, mode="json"):
                 )
             )
         )
+
     data = dict(
         id=h.id,
         name=h.name,
         label=h.label,
-        cluster=dict(
-            id=h.cluster.id,
-            name=h.cluster.name
-        ),
         attributes={
             (x.name, x.value) for x in h.attributes.all()
         },
         deployments=deployments,
     )
+    if h.cluster:
+        data['cluster'] = dict(
+            id=h.cluster.id,
+            name=h.cluster.name,
+            attributes={
+                (x.name, x.value) for x in h.cluster.attributes.all()
+            },
+        )
+
     if mode == 'json':
         return JsonResponse(dict(host=data))
     return render(request, 'host.html', dict(host=data))
@@ -138,7 +144,10 @@ def application(request, pk, mode="json"):
                 ),
             )
             for x in instances
-        ]
+        ],
+        attributes={
+            (x.name, x.value) for x in a.attributes.all()
+        },
     )
     if mode == 'json':
         return JsonResponse(dict(app=data))

@@ -54,7 +54,7 @@ class Deployment(models.Model):
 class DeploymentAttribute(models.Model):
     name = models.CharField(max_length=100)
     value = models.TextField()
-    deployment = models.ForeignKey(Deployment, related_name="deployment")
+    deployment = models.ForeignKey(Deployment, related_name="attributes")
 
     def __str__(self):
         return self.name
