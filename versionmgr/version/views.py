@@ -40,18 +40,62 @@ def version(request):
     return JsonResponse(dict(result='ok', previous=dict(version=prev_version)))
 
 
+class Item(object):
+    def __init__(self, id, name):
+        self.id = id
+        self.name = name
+        self.keys = []
+        self.items = {}
+
+    def __getitem__(self, key):
+        return self.items[key.id]
+
+    def __setitem__(self, key, value):
+        self.keys.append(key.id)
+        self.items[key.id] = Item(key, value)
+
+    def __str__(self):
+        return "<id: %s; name: %s; items: %s>" % (self.id, self.name, len(self.keys))
+
+
 @require_GET
 def cluster(request, pk, mode="json"):
     c = models.Cluster.objects.get(pk=pk)
+    apps = {}
+    deployments = {}
+    applications = {}
+    deployapps = {}
+    instances = {}
+    hosts = {}
+    for host in c.hosts.all():
+        hosts[host.id] = host.name
+        for inst in host.app_instances.all():
+            deployments[inst.deployment.id] = inst.deployment.name
+            applications[inst.application.id] = inst.application.name
+            if inst.deployment.id not in deployapps:
+                deployapps[inst.deployment.id] = set()
+            deployapps[inst.deployment.id].add(inst.application.id)
+
+            key = "{dep}|{app}|{host}".format(host=inst.host.id, dep=inst.deployment.id, app=inst.application.id)
+            instances[key] = dict(
+                id=inst.id,
+                version=dict(
+                    id=inst.version.id,
+                    name=inst.version.name
+                )
+            )
+
     data = dict(
         id=c.id,
         name=c.name,
         attributes={
             (x.name, x.value) for x in c.attributes.all()
         },
-        hosts={
-            (x.id, x.name) for x in c.hosts.all()
-        },
+        hosts=hosts,
+        deployments=deployments,
+        applications=applications,
+        instances=instances,
+        deployapps=deployapps,
     )
     if mode == 'json':
         return JsonResponse(dict(cluster=data))

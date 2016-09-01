@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load version_tags %}
 
 {% block breadcrumb %}
 <li>cluster <a href="{% url 'cluster' cluster.id %}">{{ cluster.name }}</a></li>
@@ -15,12 +16,36 @@
   </dl>
 </div>
 
-<h2>Hosts</h2>
-<div class="hosts">
-  <ul>
-    {% for id, name in cluster.hosts %}
-    {% include 'frag_host.html' with id=id name=name label=name only %}
+<table class="table table-condensed table-striped">
+  <thead>
+    <tr>
+      <th>Deployment</th>
+      <th>Application</th>
+      <th/>
+      {% for id, name in cluster.hosts.items %}
+      {% include 'frag_host.html' with id=id name=name label=name only %}
+      {% endfor %}
+    </tr>
+  </thead>
+  <tbody>
+    {% for dep_id, name in cluster.deployments.items %}
+    {% for app_id in cluster.deployapps|get_item:dep_id %}
+    <tr>
+      <th>{% include 'frag_deployment.html' with id=dep_id name=name label=name only %}</th>
+      <th>
+        {% include 'frag_app.html' with id=app_id name=cluster.applications|get_item:app_id only %}
+      </th>
+      {% for host_id, host_name in cluster.hosts.items %}
+      {% with key=dep_id|concat:'|'|concat:app_id|concat:'|'|concat:host_id %}
+      {% with v=cluster.instances|get_item:key %}
+      <td>{% include 'frag_version.html' with id="v.version.id" name=v.version.name only %}</td>
+      {% endwith %}
+      {% endwith %}
+      {% endfor %}
+    </tr>
     {% endfor %}
-  </ul>
-</div>
+    {% endfor %}
+  </tbody>
+</table>
+
 {% endblock %}
