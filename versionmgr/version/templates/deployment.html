@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 
 {% block breadcrumb %}
-<li>deployment <a href="url 'deployment' dep.id ">{{ dep.name }}</a></li>
+<li>deployment <a href="{% url 'deployment' dep.id %}">{{ dep.name }}</a></li>
 {% endblock %}
 
 {% block content %}

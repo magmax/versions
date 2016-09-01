@@ -233,10 +233,26 @@ def deployment(request, pk, mode="json"):
 @require_GET
 def version(request, pk, mode="json"):
     v = models.Version.objects.get(pk=pk)
-    instances = v.app_instances.all()
+    instances = {}
+    for instance in v.app_instances.all():
+        instances[instance.id] = dict(
+            host=dict(
+                id=instance.host.id,
+                name=instance.host.name,
+            ),
+            deployment=dict(
+                id=instance.deployment.id,
+                name=instance.deployment.name,
+            ),
+            application=dict(
+                id=instance.application.id,
+                name=instance.application.name,
+            )
+        )
     data = dict(
         id=v.id,
         name=v.name,
+        instances=instances,
     )
     if mode == 'json':
         return JsonResponse(dict(version=data))

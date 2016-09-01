@@ -15,6 +15,7 @@ def md(text):
         return "<a href={url}>{url}</a>".format(url=text)
     return markdown.markdown(text)
 
+
 @register.filter
 def concat(pattern, value):
     return str(pattern) + str(value)

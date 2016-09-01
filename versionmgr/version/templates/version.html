@@ -1,10 +1,33 @@
 {% extends 'base.html' %}
 
 {% block breadcrumb %}
-<li>deployment <a href="url 'deployment' dep.id ">{{ dep.name }}</a></li>
+<li>version <a href="{% url 'version' version.id %}">{{ version.name }}</a></li>
 {% endblock %}
 
 {% block content %}
 <h1>Version {{ version.name }}</h1>
+
+<h2>Installations</h2>
+<div class="installations">
+
+  <table class="table table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Host</th>
+        <th>Deployment</th>
+        <th>Application</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for id, instance in version.instances.items %}
+      <tr>
+        <td>{% include 'frag_host.html'       with id=instance.host.id        name=instance.host.name only %}</td>
+        <td>{% include 'frag_deployment.html' with id=instance.deployment.id  name=instance.deployment.name only %}</td>
+        <td>{% include 'frag_app.html'        with id=instance.application.id name=instance.application.name only %}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
 
 {% endblock %}
