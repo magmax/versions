@@ -30,7 +30,7 @@
       <tr>
         <td>{% include 'frag_host.html' with id=instance.host.id name=instance.host.name only %}</td>
         <td>{% include 'frag_deployment.html' with id=instance.deployment.id name=instance.deployment.name only %}</td>
-        <td>{{ instance.version.name }}</td>
+        <td>{% include 'frag_version.html' with id=instance.version.id name=instance.version.name only %}</td>
       </tr>
       {% endfor %}
     </tbody>

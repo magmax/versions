@@ -38,7 +38,11 @@
       {% for host_id, host_name in cluster.hosts.items %}
       {% with key=dep_id|concat:'|'|concat:app_id|concat:'|'|concat:host_id %}
       {% with v=cluster.instances|get_item:key %}
-      <td>{% include 'frag_version.html' with id="v.version.id" name=v.version.name only %}</td>
+      <td>
+        {% if v.version %}
+        {% include 'frag_version.html' with id=v.version.id name=v.version.name only %}
+        {% endif %}
+      </td>
       {% endwith %}
       {% endwith %}
       {% endfor %}

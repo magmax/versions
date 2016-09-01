@@ -33,5 +33,7 @@ urlpatterns = [
         dict(mode='html'), name="application"),
     url(r'^html/deployment/(?P<pk>\d+)/?$', views.deployment,
         dict(mode='html'), name="deployment"),
+    url(r'^html/version/(?P<pk>\d+)/?$', views.version,
+        dict(mode='html'), name="version"),
     url(r'^admin/', admin.site.urls),
 ]
