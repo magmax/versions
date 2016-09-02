@@ -113,6 +113,12 @@ def cluster_list(request, mode="json"):
                 hosts={(x.id, x.name) for x in cluster.hosts.all()}
             )
         )
+    #out of any cluster
+    clusters.append(
+        dict(
+            hosts={(x.id, x.name) for x in models.Host.objects.filter(cluster__isnull=True)}
+        )
+    )
     if mode == 'json':
         return JsonResponse(dict(clusters=clusters))
     return render(request, 'clusters.html', dict(clusters=clusters))
