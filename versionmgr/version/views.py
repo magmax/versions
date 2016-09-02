@@ -10,7 +10,7 @@ logger = logging.getLogger(__name__)
 
 
 @require_POST
-def version(request):
+def version_write(request):
     data = json.loads(request.body.decode("utf-8"))
     host, _ = models.Host.objects.get_or_create(
         name=data.get('host') or request.META['REMOTE_HOST']
@@ -40,24 +40,6 @@ def version(request):
     return JsonResponse(dict(result='ok', previous=dict(version=prev_version)))
 
 
-class Item(object):
-    def __init__(self, id, name):
-        self.id = id
-        self.name = name
-        self.keys = []
-        self.items = {}
-
-    def __getitem__(self, key):
-        return self.items[key.id]
-
-    def __setitem__(self, key, value):
-        self.keys.append(key.id)
-        self.items[key.id] = Item(key, value)
-
-    def __str__(self):
-        return "<id: %s; name: %s; items: %s>" % (self.id, self.name, len(self.keys))
-
-
 @require_GET
 def cluster(request, pk, mode="json"):
     c = models.Cluster.objects.get(pk=pk)
@@ -84,13 +66,16 @@ def cluster(request, pk, mode="json"):
                     name=inst.version.name
                 )
             )
+    #sets to lists
+    for k, v in deployapps.items():
+        deployapps[k] = list(v)
 
     data = dict(
         id=c.id,
         name=c.name,
-        attributes={
+        attributes=dict(
             (x.name, x.value) for x in c.attributes.all()
-        },
+        ),
         hosts=hosts,
         deployments=deployments,
         applications=applications,
@@ -110,15 +95,18 @@ def cluster_list(request, mode="json"):
             dict(
                 name=cluster.name,
                 id=cluster.id,
-                hosts={(x.id, x.name) for x in cluster.hosts.all()}
+                hosts=dict((x.id, x.name) for x in cluster.hosts.all())
             )
         )
     #out of any cluster
-    clusters.append(
-        dict(
-            hosts={(x.id, x.name) for x in models.Host.objects.filter(cluster__isnull=True)}
+    no_cluster = dict((x.id, x.name) for x in models.Host.objects.filter(cluster__isnull=True))
+    if no_cluster:
+        clusters.append(
+            dict(
+                hosts=no_cluster
+            )
         )
-    )
+
     if mode == 'json':
         return JsonResponse(dict(clusters=clusters))
     return render(request, 'clusters.html', dict(clusters=clusters))

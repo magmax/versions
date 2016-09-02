@@ -22,13 +22,11 @@ class InsertionByPublicAPITest(TestCase):
     def test_insert_twice(self):
         c = Client()
         data = {'host': 'foo', 'application': 'bar', 'version': '0.0.1'}
-        response = c.post('/version/', json.dumps(data),
-                          content_type="application/json")
+        response = c.post('/version/', json.dumps(data), content_type="application/json")
         assert response.json()['previous']['version'] is None
 
         data = {'host': 'foo', 'application': 'bar', 'version': '0.0.2'}
-        response = c.post('/version/', json.dumps(data),
-                          content_type="application/json")
+        response = c.post('/version/', json.dumps(data), content_type="application/json")
         assert response.json()['previous']['version'] == '0.0.1'
 
 
@@ -37,7 +35,7 @@ class RetrieveByPublicAPITest(TestCase):
         cluster = factories.ClusterFactory()
 
         c = Client()
-        response = c.get('/cluster/', content_type="application/json")
+        response = c.get('/cluster/')
         body = response.json()
         assert 'clusters' in body
         clusters = body['clusters']
@@ -48,7 +46,6 @@ class RetrieveByPublicAPITest(TestCase):
         cluster = factories.ClusterFactory()
 
         c = Client()
-        response = c.get('/cluster/%s' % cluster.id,
-                         content_type="application/json")
+        response = c.get('/cluster/%s' % cluster.id)
         body = response.json()
         assert body is not None

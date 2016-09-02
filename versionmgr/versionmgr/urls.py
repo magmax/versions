@@ -20,7 +20,7 @@ from version import views
 
 
 urlpatterns = [
-    url(r'^version/$', views.version),
+    url(r'^version/$', views.version_write),
     url(r'^cluster/(?P<pk>\d+)/?$', views.cluster),
     url(r'^cluster/?$', views.cluster_list),
     url(r'^html/cluster/?$', views.cluster_list,
