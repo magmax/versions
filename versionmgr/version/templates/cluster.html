@@ -21,9 +21,10 @@
     <tr>
       <th>Deployment</th>
       <th>Application</th>
-      <th/>
       {% for id, name in cluster.hosts.items %}
-      {% include 'frag_host.html' with id=id name=name label=name only %}
+      <th>
+        {% include 'frag_host.html' with id=id name=name label=name only %}
+      </th>
       {% endfor %}
     </tr>
   </thead>
