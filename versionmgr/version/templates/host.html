@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 
 {% block breadcrumb %}
-<li>cluster <a href="{% url 'cluster' host.cluster.id %}">{{ host.cluster.name }}</a></li>
+<li>cluster {% if host.cluster %}<a href="{% url 'cluster' host.cluster.id %}">{{ host.cluster.name }}{% else %}not set{% endif %}</a></li>
 <li>host <a href="{% url 'host' host.id %}">{{ host.name }}</a></li>
 {% endblock %}
 
@@ -9,8 +9,10 @@
 <h1>Host {{ host.name }}</h1>
 <div class="well">
   <dl class="dl-horizontal">
+    {% if host.cluster %}
     <dt>Cluster</dt>
     <dd><a href="{% url 'cluster' host.cluster.id %}">{{ host.cluster.name }}</a></dd>
+    {% endif %}
 
     {% for name, value in host.cluster.attributes %}
     <dt>{{ name }}</dt>

@@ -12,7 +12,7 @@
     {% endif %}
   </dt>
   <dd>
-    {% for id, name in cluster.hosts %}
+    {% for id, name in cluster.hosts.items %}
     {% include 'frag_host.html' with id=id name=name label=name only %}
     {% endfor %}
   </dd>
