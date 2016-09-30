@@ -19,4 +19,5 @@ class HostFactory(factory.django.DjangoModelFactory):
         model = models.Host
 
     name = factory.LazyAttribute(lambda x: faker.last_name())
+    label = factory.LazyAttribute(lambda x: 'label %s' % x.name)
     cluster = factory.SubFactory(ClusterFactory)

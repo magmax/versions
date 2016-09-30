@@ -9,6 +9,92 @@ from . import models
 logger = logging.getLogger(__name__)
 
 
+class UnserializationException(Exception):
+    def __init__(self, got, expected):
+        super().__init__('Expected %s, but got %s' % (expected, got))
+
+
+class ObjectView(object):
+    TYPE = 'ObjectView'
+
+    @classmethod
+    def from_model(cls, model):
+        result = cls()
+        for k, v in cls.__dict__.items():
+            if k.startswith(('__', 'TYPE')) \
+               or callable(v) \
+               or isinstance(v, staticmethod) \
+               or isinstance(v, classmethod):
+                continue
+            setattr(result, k, getattr(model, k))
+        return result
+
+    @classmethod
+    def from_json(cls, _json):
+        _dict = json.loads(_json)
+        if _dict.get('type') != cls.TYPE:
+            raise UnserializationException(cls.TYPE, _dict.get('type'))
+        result = cls()
+        for k, v in cls.__dict__.items():
+            if k.startswith(('__', 'TYPE')) \
+               or callable(v) \
+               or isinstance(v, staticmethod) \
+               or isinstance(v, classmethod):
+                continue
+            setattr(result, k, _dict.get(k))
+        return result
+
+    def to_json(self):
+        result = dict(type=self.TYPE)
+        for k, v in self.__dict__.items():
+            if k.startswith(('__', 'TYPE')) \
+               or callable(v) \
+               or isinstance(v, staticmethod) \
+               or isinstance(v, classmethod):
+                continue
+            result[k] = v
+        return json.dumps(result)
+
+
+class ClusterView(ObjectView):
+    TYPE = 'Cluster'
+    id = None
+    name = None
+
+
+class HostView(ObjectView):
+    TYPE = 'Host'
+    id = None
+    name = None
+    label = None
+
+
+class DeploymentView(ObjectView):
+    TYPE = 'Deployment'
+    id = None
+    name = None
+    label = None
+
+
+class ApplicationView(ObjectView):
+    TYPE = 'Application'
+    id = None
+    name = None
+    label = None
+    description = None
+
+
+class VersionView(ObjectView):
+    TYPE = 'Version'
+    id = None
+    name = None
+
+
+class ServiceView(ObjectView):
+    TYPE = "Service"
+    id = None
+
+
 @require_POST
 def version_write(request):
     data = json.loads(request.body.decode("utf-8"))
@@ -25,7 +111,7 @@ def version_write(request):
         name=data.get('deployment', "default")
     )
 
-    appinstance, created = models.AppInstance.objects.get_or_create(
+    service, created = models.Service.objects.get_or_create(
         host=host,
         application=app,
         deployment=deployment,
@@ -33,9 +119,9 @@ def version_write(request):
             version=version
         )
     )
-    prev_version = None if created else appinstance.version.name
-    appinstance.version = version
-    appinstance.save()
+    prev_version = None if created else service.version.name
+    service.version = version
+    service.save()
 
     return JsonResponse(dict(result='ok', previous=dict(version=prev_version)))
 
@@ -47,23 +133,23 @@ def cluster(request, pk, mode="json"):
     deployments = {}
     applications = {}
     deployapps = {}
-    instances = {}
+    services = {}
     hosts = {}
     for host in c.hosts.all():
         hosts[host.id] = host.name
-        for inst in host.app_instances.all():
-            deployments[inst.deployment.id] = inst.deployment.name
-            applications[inst.application.id] = inst.application.name
-            if inst.deployment.id not in deployapps:
-                deployapps[inst.deployment.id] = set()
-            deployapps[inst.deployment.id].add(inst.application.id)
+        for service in host.services.all():
+            deployments[service.deployment.id] = service.deployment.name
+            applications[service.application.id] = service.application.name
+            if service.deployment.id not in deployapps:
+                deployapps[service.deployment.id] = set()
+            deployapps[service.deployment.id].add(service.application.id)
 
-            key = "{dep}|{app}|{host}".format(host=inst.host.id, dep=inst.deployment.id, app=inst.application.id)
-            instances[key] = dict(
-                id=inst.id,
+            key = "{dep}|{app}|{host}".format(host=service.host.id, dep=service.deployment.id, app=service.application.id)
+            services[key] = dict(
+                id=service.id,
                 version=dict(
-                    id=inst.version.id,
-                    name=inst.version.name
+                    id=service.version.id,
+                    name=service.version.name
                 )
             )
     #sets to lists
@@ -79,7 +165,7 @@ def cluster(request, pk, mode="json"):
         hosts=hosts,
         deployments=deployments,
         applications=applications,
-        instances=instances,
+        services=services,
         deployapps=deployapps,
     )
     if mode == 'json':
@@ -115,22 +201,22 @@ def cluster_list(request, mode="json"):
 @require_GET
 def host(request, pk, mode="json"):
     h = models.Host.objects.get(pk=pk)
-    appinstances = h.app_instances.all()
+    services = h.services.all()
     deployments = {}
-    for appinstance in appinstances:
-        deployment = appinstance.deployment
+    for service in services:
+        deployment = service.deployment
         if deployment.id not in deployments:
             deployments[deployment.id] = dict(name=deployment.name, apps=[])
         deployments[deployment.id]['apps'].append(
             dict(
                 name=deployment.name,
                 application=dict(
-                    id=appinstance.application.id,
-                    name=appinstance.application.name,
+                    id=service.application.id,
+                    name=service.application.name,
                 ),
                 version=dict(
-                    id=appinstance.version.id,
-                    name=appinstance.version.name,
+                    id=service.version.id,
+                    name=service.version.name,
                 )
             )
         )
@@ -161,12 +247,12 @@ def host(request, pk, mode="json"):
 @require_GET
 def application(request, pk, mode="json"):
     a = models.Application.objects.get(pk=pk)
-    instances = a.app_instances.all()
+    services = a.services.all()
     data = dict(
         id=a.id,
         name=a.label or a.name,
         description=a.description,
-        instances=[
+        services=[
             dict(
                 host=dict(
                     id=x.host.id,
@@ -181,7 +267,7 @@ def application(request, pk, mode="json"):
                     name=x.version.name,
                 ),
             )
-            for x in instances
+            for x in services
         ],
         attributes={
             (x.name, x.value) for x in a.attributes.all()
@@ -194,11 +280,11 @@ def application(request, pk, mode="json"):
 @require_GET
 def deployment(request, pk, mode="json"):
     d = models.Deployment.objects.get(pk=pk)
-    instances = d.app_instances.all()
+    services = d.services.all()
     data = dict(
         id=d.id,
         name=d.label or d.name,
-        instances=[
+        services=[
             dict(
                 host=dict(
                     id=x.host.id,
@@ -213,7 +299,7 @@ def deployment(request, pk, mode="json"):
                     name=x.version.name,
                 ),
             )
-            for x in instances
+            for x in services
         ],
         attributes={
             (x.name, x.value) for x in d.attributes.all()
@@ -227,26 +313,26 @@ def deployment(request, pk, mode="json"):
 @require_GET
 def version(request, pk, mode="json"):
     v = models.Version.objects.get(pk=pk)
-    instances = {}
-    for instance in v.app_instances.all():
-        instances[instance.id] = dict(
+    services = {}
+    for service in v.services.all():
+        services[service.id] = dict(
             host=dict(
-                id=instance.host.id,
-                name=instance.host.name,
+                id=service.host.id,
+                name=service.host.name,
             ),
             deployment=dict(
-                id=instance.deployment.id,
-                name=instance.deployment.name,
+                id=service.deployment.id,
+                name=service.deployment.name,
             ),
             application=dict(
-                id=instance.application.id,
-                name=instance.application.name,
+                id=service.application.id,
+                name=service.application.name,
             )
         )
     data = dict(
         id=v.id,
         name=v.name,
-        instances=instances,
+        services=services,
     )
     if mode == 'json':
         return JsonResponse(dict(version=data))

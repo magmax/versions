@@ -9,7 +9,7 @@
 <h1>Cluster {{ cluster.name }}</h1>
 <div class="well">
   <dl class="dl-horizontal">
-    {% for name, value in cluster.attributes %}
+    {% for name, value in cluster.attributes.items %}
     <dt>{{ name }}</dt>
     <dd>{{ value|md|safe }}</dd>
     {% endfor %}
@@ -38,7 +38,7 @@
       </th>
       {% for host_id, host_name in cluster.hosts.items %}
       {% with key=dep_id|concat:'|'|concat:app_id|concat:'|'|concat:host_id %}
-      {% with v=cluster.instances|get_item:key %}
+      {% with v=cluster.services|get_item:key %}
       <td>
         {% if v.version %}
         {% include 'frag_version.html' with id=v.version.id name=v.version.name only %}

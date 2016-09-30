@@ -85,12 +85,13 @@ class Version(models.Model):
         return self.name
 
 
-class AppInstance(models.Model):
-    version = models.ForeignKey(Version, related_name="app_instances")
-    host = models.ForeignKey(Host, related_name="app_instances")
-    application = models.ForeignKey(Application, related_name="app_instances")
+class Service(models.Model):
+    version = models.ForeignKey(Version, related_name="services")
+    host = models.ForeignKey(Host, related_name="services")
+    application = models.ForeignKey(Application, related_name="services")
+    arguments = models.TextField(blank=True, null=True)
     deployment = models.ForeignKey(
-        Deployment, related_name="app_instances", blank=True, null=True)
+        Deployment, related_name="services", blank=True, null=True)
 
     updated = models.DateTimeField(auto_now=True)
 
