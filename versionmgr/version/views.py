@@ -17,6 +17,12 @@ class UnserializationException(Exception):
 
 class ObjectView(object):
     TYPE = 'ObjectView'
+    _name_view_map = {}
+
+    def __init__(self):
+        super()
+        for k, v in self._name_view_map.items():
+            setattr(self, k, [])
 
     @classmethod
     def from_model(cls, model):
@@ -121,10 +127,9 @@ class ClusterWithHostsView(ObjectView):
     TYPE = "ClusterWithHosts"
     id = None
     name = None
-
-    def __init__(self):
-        super()
-        self.hosts = []
+    _name_view_map = dict(
+        hosts=HostView,
+    )
 
     @classmethod
     def from_model(cls, model):
