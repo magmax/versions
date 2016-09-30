@@ -17,7 +17,7 @@ class UnserializationException(Exception):
 
 class ObjectView(object):
     TYPE = 'ObjectView'
-    _name_view_map = {}
+    _name_view_map = {}  # map with {property-name: view-class-name} format
 
     def __init__(self):
         super()
@@ -29,6 +29,10 @@ class ObjectView(object):
         result = cls()
         for k in cls._attribute_list():
             setattr(result, k, getattr(model, k))
+        for name, viewclass in cls._name_view_map.items():
+            for model in getattr(model, name).all():
+                view = viewclass.from_model(model)
+                getattr(result, name).append(view)
         return result
 
     @classmethod
@@ -42,6 +46,9 @@ class ObjectView(object):
         result = cls()
         for k in cls._attribute_list():
             setattr(result, k, _dict.get(k))
+        for name, viewclass in cls._name_view_map.items():
+            for x in _dict.get(name, []):
+                getattr(result, name).append(viewclass.from_dict(x))
         return result
 
 
@@ -49,6 +56,8 @@ class ObjectView(object):
         result = dict(type=self.TYPE)
         for k, v in self._attribute_dict():
             result[k] = v
+        for name in self._name_view_map:
+            result[name] = [x.to_dict() for x in getattr(self, name)]
         return result
 
     def to_json(self):
@@ -130,33 +139,6 @@ class ClusterWithHostsView(ObjectView):
     _name_view_map = dict(
         hosts=HostView,
     )
-
-    @classmethod
-    def from_model(cls, model):
-        result = cls()
-        for k in cls._attribute_list():
-            setattr(result, k, getattr(model, k))
-        for hostmodel in model.hosts.all():
-            hostview = HostView.from_model(hostmodel)
-            result.hosts.append(hostview)
-        return result
-
-    @classmethod
-    def from_json(cls, _json):
-        _dict = json.loads(_json)
-        if _dict.get('type') != cls.TYPE:
-            raise UnserializationException(cls.TYPE, _dict.get('type'))
-        result = cls()
-        for k in cls._attribute_list():
-            setattr(result, k, _dict.get(k))
-        for h in _dict.get('hosts', []):
-            result.hosts.append(HostView.from_dict(h))
-        return result
-
-    def to_dict(self):
-        result = super().to_dict()
-        result['hosts'] = [h.to_dict() for h in self.hosts]
-        return result
 
 
 @require_POST
