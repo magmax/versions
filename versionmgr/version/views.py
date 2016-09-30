@@ -3,6 +3,7 @@ import logging
 from django.http import JsonResponse
 from django.views.decorators.http import require_POST, require_GET
 from django.shortcuts import render
+from django.db.models import Model
 
 from . import models
 
@@ -20,12 +21,7 @@ class ObjectView(object):
     @classmethod
     def from_model(cls, model):
         result = cls()
-        for k, v in cls.__dict__.items():
-            if k.startswith(('__', 'TYPE')) \
-               or callable(v) \
-               or isinstance(v, staticmethod) \
-               or isinstance(v, classmethod):
-                continue
+        for k in cls._attribute_list():
             setattr(result, k, getattr(model, k))
         return result
 
@@ -35,31 +31,42 @@ class ObjectView(object):
         if _dict.get('type') != cls.TYPE:
             raise UnserializationException(cls.TYPE, _dict.get('type'))
         result = cls()
-        for k, v in cls.__dict__.items():
-            if k.startswith(('__', 'TYPE')) \
-               or callable(v) \
-               or isinstance(v, staticmethod) \
-               or isinstance(v, classmethod):
-                continue
+        for k in cls._attribute_list():
             setattr(result, k, _dict.get(k))
         return result
 
     def to_json(self):
         result = dict(type=self.TYPE)
-        for k, v in self.__dict__.items():
-            if k.startswith(('__', 'TYPE')) \
-               or callable(v) \
-               or isinstance(v, staticmethod) \
-               or isinstance(v, classmethod):
-                continue
+        for k, v in self._attribute_dict():
             result[k] = v
+        print(result)
         return json.dumps(result)
+
+    @classmethod
+    def _attribute_list(cls):
+        for k, v in cls.__dict__.items():
+            if not cls._must_ignore(k, v):
+                yield k
+
+    def _attribute_dict(self):
+        for k, v in self.__dict__.items():
+            if not self._must_ignore(k, v):
+                yield k, v
+
+    @staticmethod
+    def _must_ignore(k, v):
+        return (
+            k.startswith(('__', 'TYPE'))
+            or callable(v)
+            or isinstance(v, (staticmethod, classmethod, Model))
+        )
 
 
 class ClusterView(ObjectView):
     TYPE = 'Cluster'
     id = None
     name = None
+
 
 
 class HostView(ObjectView):
