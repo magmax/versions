@@ -1,1 +1,7 @@
-<span class="label label-info"><a href="{% url 'host' id %}">{{ name }}</a></span>
+<span class="label label-info">
+  {% if host %}
+  <a href="{% url 'host' host.id %}">{{ host.name }}</a>
+  {% else %}
+  <a href="{% url 'host' id %}">{{ name }}</a>
+  {% endif %}
+</span>

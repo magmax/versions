@@ -148,13 +148,10 @@ class ClusterWithHostsView(ObjectView):
             result.hosts.append(HostView.from_dict(h))
         return result
 
-    def to_json(self):
-        result = dict(type=self.TYPE)
-        print (self.hosts)
-        for k, v in self._attribute_dict():
-            result[k] = v
+    def to_dict(self):
+        result = super().to_dict()
         result['hosts'] = [h.to_dict() for h in self.hosts]
-        return json.dumps(result)
+        return result
 
 
 @require_POST
@@ -240,24 +237,14 @@ def cluster_list(request, mode="json"):
     clusters = []
     for cluster in models.Cluster.objects.all():
         clusters.append(
-            dict(
-                name=cluster.name,
-                id=cluster.id,
-                hosts=dict((x.id, x.name) for x in cluster.hosts.all())
-            )
+            ClusterWithHostsView.from_model(cluster).to_dict()
         )
     #out of any cluster
-    no_cluster = dict((x.id, x.name) for x in models.Host.objects.filter(cluster__isnull=True))
-    if no_cluster:
-        clusters.append(
-            dict(
-                hosts=no_cluster
-            )
-        )
+    standalone = [HostView.from_model(x).to_dict() for x in models.Host.objects.filter(cluster__isnull=True)]
 
     if mode == 'json':
-        return JsonResponse(dict(clusters=clusters))
-    return render(request, 'clusters.html', dict(clusters=clusters))
+        return JsonResponse(dict(clusters=clusters, standalone=standalone))
+    return render(request, 'clusters.html', dict(clusters=clusters, standalone=standalone))
 
 
 @require_GET

@@ -5,17 +5,24 @@
 <dl class="dl-horizontal">
   {% for cluster in clusters %}
   <dt>
-    {% if cluster.id == None %}
-    Not set
-    {% else %}
     <a href="{% url 'cluster' cluster.id %}">{{ cluster.name }}</a>
-    {% endif %}
   </dt>
   <dd>
-    {% for id, name in cluster.hosts.items %}
-    {% include 'frag_host.html' with id=id name=name label=name only %}
+    {% for host in cluster.hosts %}
+    {% include 'frag_host.html' with host=host only %}
     {% endfor %}
   </dd>
   {% endfor %}
+  <dt>
+    Not set
+  </dt>
+  <dd>
+    {% for host in standalone %}
+    {% include 'frag_host.html' with host=host only %}
+    {% endfor %}
+  </dd>
 </dl>
+
+{{ clusters }}
+
 {% endblock %}
