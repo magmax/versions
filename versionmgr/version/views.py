@@ -27,7 +27,10 @@ class ObjectView(object):
 
     @classmethod
     def from_json(cls, _json):
-        _dict = json.loads(_json)
+        return cls.from_dict(json.loads(_json))
+
+    @classmethod
+    def from_dict(cls, _dict):
         if _dict.get('type') != cls.TYPE:
             raise UnserializationException(cls.TYPE, _dict.get('type'))
         result = cls()
@@ -35,12 +38,15 @@ class ObjectView(object):
             setattr(result, k, _dict.get(k))
         return result
 
-    def to_json(self):
+
+    def to_dict(self):
         result = dict(type=self.TYPE)
         for k, v in self._attribute_dict():
             result[k] = v
-        print(result)
-        return json.dumps(result)
+        return result
+
+    def to_json(self):
+        return json.dumps(self.to_dict())
 
     @classmethod
     def _attribute_list(cls):
@@ -58,7 +64,16 @@ class ObjectView(object):
         return (
             k.startswith(('__', 'TYPE'))
             or callable(v)
-            or isinstance(v, (staticmethod, classmethod, Model))
+            or isinstance(
+                v,
+                (
+                    staticmethod,
+                    classmethod,
+                    Model,
+                    list,
+                    dict,
+                )
+            )
         )
 
 
@@ -100,6 +115,46 @@ class VersionView(ObjectView):
 class ServiceView(ObjectView):
     TYPE = "Service"
     id = None
+
+
+class ClusterWithHostsView(ObjectView):
+    TYPE = "ClusterWithHosts"
+    id = None
+    name = None
+
+    def __init__(self):
+        super()
+        self.hosts = []
+
+    @classmethod
+    def from_model(cls, model):
+        result = cls()
+        for k in cls._attribute_list():
+            setattr(result, k, getattr(model, k))
+        for hostmodel in model.hosts.all():
+            hostview = HostView.from_model(hostmodel)
+            result.hosts.append(hostview)
+        return result
+
+    @classmethod
+    def from_json(cls, _json):
+        _dict = json.loads(_json)
+        if _dict.get('type') != cls.TYPE:
+            raise UnserializationException(cls.TYPE, _dict.get('type'))
+        result = cls()
+        for k in cls._attribute_list():
+            setattr(result, k, _dict.get(k))
+        for h in _dict.get('hosts', []):
+            result.hosts.append(HostView.from_dict(h))
+        return result
+
+    def to_json(self):
+        result = dict(type=self.TYPE)
+        print (self.hosts)
+        for k, v in self._attribute_dict():
+            result[k] = v
+        result['hosts'] = [h.to_dict() for h in self.hosts]
+        return json.dumps(result)
 
 
 @require_POST
