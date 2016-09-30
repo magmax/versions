@@ -26,11 +26,11 @@
       </tr>
     </thead>
     <tbody>
-      {% for instance in dep.instances %}
+      {% for service in dep.services %}
       <tr>
-        <td>{% include 'frag_host.html' with id=instance.host.id name=instance.host.name only %}</td>
-        <td>{% include 'frag_app.html' with id=instance.application.id name=instance.application.name only %}</td>
-        <td>{{ instance.version.name }}</td>
+        <td>{% include 'frag_host.html' with id=service.host.id name=service.host.name only %}</td>
+        <td>{% include 'frag_app.html' with id=service.application.id name=service.application.name only %}</td>
+        <td>{{ service.version.name }}</td>
       </tr>
       {% endfor %}
     </tbody>
