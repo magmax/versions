@@ -113,10 +113,17 @@ class ServiceWithDepsView(ObjectView):
         host=HostView,
         deployment=DeploymentView,
         application=ApplicationView,
+        version=VersionView,
     )
 
 class VersionDetail(VersionView):
     TYPE = 'VersionDetail'
+    name_view_map = dict(
+        services=ServiceWithDepsView,
+    )
+
+class DeploymentDetail(DeploymentView):
+    TYPE = 'DeploymentDetail'
     name_view_map = dict(
         services=ServiceWithDepsView,
     )
@@ -304,31 +311,8 @@ def application(request, pk, mode="json"):
 @require_GET
 def deployment(request, pk, mode="json"):
     d = models.Deployment.objects.get(pk=pk)
-    services = d.services.all()
-    data = dict(
-        id=d.id,
-        name=d.label or d.name,
-        services=[
-            dict(
-                host=dict(
-                    id=x.host.id,
-                    name=x.host.name,
-                ),
-                application=dict(
-                    id=x.application.id,
-                    name=x.application.name,
-                ),
-                version=dict(
-                    id=x.version.id,
-                    name=x.version.name,
-                ),
-            )
-            for x in services
-        ],
-        attributes={
-            (x.name, x.value) for x in d.attributes.all()
-        },
-    )
+    data = DeploymentDetail.from_model(d)
+
     if mode == 'json':
         return JsonResponse(dict(deployment=data))
     return render(request, 'deployment.html', dict(dep=data))
