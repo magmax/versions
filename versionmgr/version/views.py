@@ -15,7 +15,6 @@ class UnserializationException(Exception):
 
 
 class ObjectView(object):
-    TYPE = 'ObjectView'
     name_view_map = {}  # map with {property-name: view-class-name} format
     foreign_keys = {}
 
@@ -46,8 +45,8 @@ class ObjectView(object):
 
     @classmethod
     def from_dict(cls, _dict):
-        if _dict.get('type') != cls.TYPE:
-            raise UnserializationException(cls.TYPE, _dict.get('type'))
+        if _dict.get('type') != str(cls):
+            raise UnserializationException(cls, _dict.get('type'))
         result = cls()
         for k in cls.fields:
             setattr(result, k, _dict.get(k))
@@ -57,7 +56,7 @@ class ObjectView(object):
         return result
 
     def to_dict(self):
-        result = dict(type=self.TYPE)
+        result = dict(type=str(self.__class__))
         for k in self.fields:
             result[k] = getattr(self, k, None)
         for name in self.name_view_map:
@@ -69,46 +68,36 @@ class ObjectView(object):
 
 
 class ClusterView(ObjectView):
-    TYPE = 'Cluster'
     fields = ('id', 'name')
 
 
 class HostView(ObjectView):
-    TYPE = 'Host'
     fields = ('id', 'name', 'label')
 
 
 class DeploymentView(ObjectView):
-    TYPE = 'Deployment'
     fields = ('id', 'name', 'label')
 
 
 class ApplicationView(ObjectView):
-    TYPE = 'Application'
     fields = ('id', 'name', 'label', 'description')
 
 
 class VersionView(ObjectView):
-    TYPE = 'Version'
     fields = ('id', 'name')
 
 
 class ServiceView(ObjectView):
-    TYPE = "Service"
     fields = ('id', )
 
 
-class ClusterWithHostsView(ObjectView):
-    TYPE = "ClusterWithHosts"
-    fields = ('id', 'name')
+class ClusterWithHostsView(ClusterView):
     name_view_map = dict(
         hosts=HostView,
     )
 
 
-class ServiceWithDepsView(ObjectView):
-    TYPE = "ServiceWithDeps"
-    fields = ('id', )
+class ServiceWithDepsView(ServiceView):
     foreign_keys = dict(
         host=HostView,
         deployment=DeploymentView,
@@ -118,21 +107,18 @@ class ServiceWithDepsView(ObjectView):
 
 
 class VersionDetail(VersionView):
-    TYPE = 'VersionDetail'
     name_view_map = dict(
         services=ServiceWithDepsView,
     )
 
 
 class DeploymentDetail(DeploymentView):
-    TYPE = 'DeploymentDetail'
     name_view_map = dict(
         services=ServiceWithDepsView,
     )
 
 
 class ApplicationDetail(ApplicationView):
-    TYPE = 'ApplicationDetail'
     name_view_map = dict(
         services=ServiceWithDepsView,
     )
