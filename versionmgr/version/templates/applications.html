@@ -1,0 +1,12 @@
+{% extends 'base.html' %}
+
+{% block breadcrumb %}
+{% endblock %}
+
+{% block content %}
+<ul>
+  {% for app in applications %}
+  <li> {% include 'frag_app.html' with application=app only %}</td> </li>
+  {% endfor %}
+</ul>
+{% endblock %}

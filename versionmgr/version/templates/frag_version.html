@@ -1,1 +1,5 @@
+{% if version %}
+<a href="{% url 'version' version.id %}">{{ version.name }}</a>
+{% else %}
 <a href="{% url 'version' id %}">{{ name }}</a>
+{% endif %}

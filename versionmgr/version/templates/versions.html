@@ -1,0 +1,12 @@
+{% extends 'base.html' %}
+
+{% block breadcrumb %}
+{% endblock %}
+
+{% block content %}
+<ul>
+  {% for v in versions %}
+  <li> {% include 'frag_version.html' with version=v only %}</td> </li>
+  {% endfor %}
+</ul>
+{% endblock %}

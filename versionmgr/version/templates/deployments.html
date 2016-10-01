@@ -1,0 +1,12 @@
+{% extends 'base.html' %}
+
+{% block breadcrumb %}
+{% endblock %}
+
+{% block content %}
+<ul>
+  {% for dep in deployments %}
+  <li> {% include 'frag_deployment.html' with deployment=dep only %}</td> </li>
+  {% endfor %}
+</ul>
+{% endblock %}

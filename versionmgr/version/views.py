@@ -124,6 +124,13 @@ class ApplicationDetail(ApplicationView):
     )
 
 
+def generic_list(view, model, order_by):
+    return [
+        view.from_model(x)
+        for x in model.objects.order_by(*order_by)
+    ]
+
+
 @require_POST
 def version_write(request):
     data = json.loads(request.body.decode("utf-8"))
@@ -274,10 +281,7 @@ def host(request, pk, mode="json"):
 
 @require_GET
 def host_list(request, mode="json"):
-    hosts = [
-        HostView.from_model(h)
-        for h in models.Host.objects.order_by('name')
-    ]
+    hosts = generic_list(HostView, models.Host, ['name'])
 
     if mode == 'json':
         return JsonResponse(dict(hosts=[h.to_dict() for h in hosts]))
@@ -294,6 +298,15 @@ def application(request, pk, mode="json"):
 
 
 @require_GET
+def application_list(request, mode="json"):
+    objs = generic_list(ApplicationView, models.Application, ['label', 'name'])
+
+    if mode == 'json':
+        return JsonResponse(dict(applications=[x.to_dict() for x in objs]))
+    return render(request, 'applications.html', dict(applications=objs))
+
+
+@require_GET
 def deployment(request, pk, mode="json"):
     d = models.Deployment.objects.get(pk=pk)
     data = DeploymentDetail.from_model(d)
@@ -304,9 +317,27 @@ def deployment(request, pk, mode="json"):
 
 
 @require_GET
+def deployment_list(request, mode="json"):
+    objs = generic_list(DeploymentView, models.Deployment, ['label', 'name'])
+
+    if mode == 'json':
+        return JsonResponse(dict(applications=[x.to_dict() for x in objs]))
+    return render(request, 'deployments.html', dict(deployments=objs))
+
+
+@require_GET
 def version(request, pk, mode="json"):
     v = models.Version.objects.get(pk=pk)
     version = VersionDetail.from_model(v)
     if mode == 'json':
         return JsonResponse(dict(version=version))
     return render(request, 'version.html', dict(version=version))
+
+
+@require_GET
+def version_list(request, mode="json"):
+    objs = generic_list(VersionView, models.Version, ['name'])
+
+    if mode == 'json':
+        return JsonResponse(dict(versions=[x.to_dict() for x in objs]))
+    return render(request, 'versions.html', dict(versions=objs))
