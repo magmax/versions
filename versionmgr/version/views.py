@@ -91,6 +91,10 @@ class ServiceView(ObjectView):
     fields = ('id', )
 
 
+class CustomerView(ObjectView):
+    fields = ('id', 'name')
+
+
 class ClusterWithHostsView(ClusterView):
     name_view_map = dict(
         hosts=HostView,
@@ -121,6 +125,12 @@ class DeploymentDetail(DeploymentView):
 class ApplicationDetail(ApplicationView):
     name_view_map = dict(
         services=ServiceWithDepsView,
+    )
+
+
+class CustomerDetail(CustomerView):
+    name_view_map = dict(
+        deployments=DeploymentView,
     )
 
 
@@ -341,3 +351,21 @@ def version_list(request, mode="json"):
     if mode == 'json':
         return JsonResponse(dict(versions=[x.to_dict() for x in objs]))
     return render(request, 'versions.html', dict(versions=objs))
+
+
+@require_GET
+def customer(request, pk, mode="json"):
+    v = models.Customer.objects.get(pk=pk)
+    customer = CustomerDetail.from_model(v)
+    if mode == 'json':
+        return JsonResponse(dict(customer=customer))
+    return render(request, 'customer.html', dict(customer=customer))
+
+
+@require_GET
+def customer_list(request, mode="json"):
+    objs = generic_list(CustomerView, models.Customer, ['name'])
+
+    if mode == 'json':
+        return JsonResponse(dict(customers=[x.to_dict() for x in objs]))
+    return render(request, 'customers.html', dict(customers=objs))

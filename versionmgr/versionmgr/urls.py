@@ -43,5 +43,9 @@ urlpatterns = [
         dict(mode='html'), name="version"),
     url(r'^html/version/?$', views.version_list,
         dict(mode='html'), name="versions"),
+    url(r'^html/customer/(?P<pk>\d+)/?$', views.customer,
+        dict(mode='html'), name="customer"),
+    url(r'^html/customer/?$', views.customer_list,
+        dict(mode='html'), name="customers"),
     url(r'^admin/', admin.site.urls),
 ]

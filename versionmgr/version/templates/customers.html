@@ -1,0 +1,12 @@
+{% extends 'base.html' %}
+
+{% block breadcrumb %}
+{% endblock %}
+
+{% block content %}
+<ul>
+  {% for customer in customers %}
+  <li> {% include 'frag_customer.html' with customer=customer only %}</td> </li>
+  {% endfor %}
+</ul>
+{% endblock %}

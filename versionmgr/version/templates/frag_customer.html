@@ -1,0 +1,5 @@
+{% if customer %}
+<a href="{% url 'customer' customer.id %}">{{ customer.name }}</a>
+{% else %}
+<a href="{% url 'customer' id %}">{{ name }}</a>
+{% endif %}

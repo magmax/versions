@@ -106,5 +106,15 @@ class Service(models.Model):
 
 class Customer(models.Model):
     name = models.CharField(max_length=100)
-    deployment = models.ForeignKey(Deployment, related_name="customer",
-                                   blank=True, null=True)
+    deployments = models.ManyToManyField(Deployment, related_name="customers")
+    def __str__(self):
+        return self.name
+
+
+class CustomerAttribute(models.Model):
+    name = models.CharField(max_length=100)
+    value = models.TextField()
+    application = models.ForeignKey(Customer, related_name="attributes")
+
+    def __str__(self):
+        return self.name
