@@ -3,7 +3,6 @@ import logging
 from django.http import JsonResponse
 from django.views.decorators.http import require_POST, require_GET
 from django.shortcuts import render
-from django.db.models import Model
 
 from . import models
 
@@ -17,21 +16,27 @@ class UnserializationException(Exception):
 
 class ObjectView(object):
     TYPE = 'ObjectView'
-    _name_view_map = {}  # map with {property-name: view-class-name} format
+    name_view_map = {}  # map with {property-name: view-class-name} format
+    foreign_keys = {}
 
     def __init__(self):
         super()
-        for k, v in self._name_view_map.items():
+        for k in self.foreign_keys:
+            setattr(self, k, None)
+        for k, v in self.name_view_map.items():
             setattr(self, k, [])
 
     @classmethod
     def from_model(cls, model):
         result = cls()
-        for k in cls._attribute_list():
+        for k in cls.fields:
             setattr(result, k, getattr(model, k))
-        for name, viewclass in cls._name_view_map.items():
-            for model in getattr(model, name).all():
-                view = viewclass.from_model(model)
+        for name, viewclass in cls.foreign_keys.items():
+            depmodel = getattr(model, name)
+            setattr(result, name, viewclass.from_model(depmodel))
+        for name, viewclass in cls.name_view_map.items():
+            for depmodel in getattr(model, name).all():
+                view = viewclass.from_model(depmodel)
                 getattr(result, name).append(view)
         return result
 
@@ -44,100 +49,77 @@ class ObjectView(object):
         if _dict.get('type') != cls.TYPE:
             raise UnserializationException(cls.TYPE, _dict.get('type'))
         result = cls()
-        for k in cls._attribute_list():
+        for k in cls.fields:
             setattr(result, k, _dict.get(k))
-        for name, viewclass in cls._name_view_map.items():
+        for name, viewclass in cls.name_view_map.items():
             for x in _dict.get(name, []):
                 getattr(result, name).append(viewclass.from_dict(x))
         return result
 
     def to_dict(self):
         result = dict(type=self.TYPE)
-        for k, v in self._attribute_dict():
-            result[k] = v
-        for name in self._name_view_map:
+        for k in self.fields:
+            result[k] = getattr(self, k, None)
+        for name in self.name_view_map:
             result[name] = [x.to_dict() for x in getattr(self, name)]
         return result
 
     def to_json(self):
         return json.dumps(self.to_dict())
 
-    @classmethod
-    def _attribute_list(cls):
-        for k, v in cls.__dict__.items():
-            if not cls._must_ignore(k, v):
-                yield k
-
-    def _attribute_dict(self):
-        for k, v in self.__dict__.items():
-            if not self._must_ignore(k, v):
-                yield k, v
-
-    @staticmethod
-    def _must_ignore(k, v):
-        return (
-            k.startswith(('__', 'TYPE')) or
-            callable(v) or
-            isinstance(
-                v,
-                (
-                    staticmethod,
-                    classmethod,
-                    Model,
-                    list,
-                    dict,
-                )
-            )
-        )
-
 
 class ClusterView(ObjectView):
     TYPE = 'Cluster'
-    id = None
-    name = None
+    fields = ('id', 'name')
 
 
 class HostView(ObjectView):
     TYPE = 'Host'
-    id = None
-    name = None
-    label = None
+    fields = ('id', 'name', 'label')
 
 
 class DeploymentView(ObjectView):
     TYPE = 'Deployment'
-    id = None
-    name = None
-    label = None
+    fields = ('id', 'name', 'label')
 
 
 class ApplicationView(ObjectView):
     TYPE = 'Application'
-    id = None
-    name = None
-    label = None
-    description = None
+    fields = ('id', 'name', 'label', 'description')
 
 
 class VersionView(ObjectView):
     TYPE = 'Version'
-    id = None
-    name = None
+    fields = ('id', 'name')
 
 
 class ServiceView(ObjectView):
     TYPE = "Service"
-    id = None
+    fields = ('id', )
 
 
 class ClusterWithHostsView(ObjectView):
     TYPE = "ClusterWithHosts"
-    id = None
-    name = None
-    _name_view_map = dict(
+    fields = ('id', 'name')
+    name_view_map = dict(
         hosts=HostView,
     )
 
+
+class ServiceWithDepsView(ObjectView):
+    TYPE = "ServiceWithDeps"
+    fields = ('id', )
+    foreign_keys = dict(
+        host=HostView,
+        deployment=DeploymentView,
+        application=ApplicationView,
+    )
+
+class VersionDetail(VersionView):
+    TYPE = 'VersionDetail'
+    name_view_map = dict(
+        services=ServiceWithDepsView,
+    )
 
 @require_POST
 def version_write(request):
@@ -355,27 +337,7 @@ def deployment(request, pk, mode="json"):
 @require_GET
 def version(request, pk, mode="json"):
     v = models.Version.objects.get(pk=pk)
-    services = {}
-    for service in v.services.all():
-        services[service.id] = dict(
-            host=dict(
-                id=service.host.id,
-                name=service.host.name,
-            ),
-            deployment=dict(
-                id=service.deployment.id,
-                name=service.deployment.name,
-            ),
-            application=dict(
-                id=service.application.id,
-                name=service.application.name,
-            )
-        )
-    data = dict(
-        id=v.id,
-        name=v.name,
-        services=services,
-    )
+    version = VersionDetail.from_model(v)
     if mode == 'json':
-        return JsonResponse(dict(version=data))
-    return render(request, 'version.html', dict(version=data))
+        return JsonResponse(dict(version=version))
+    return render(request, 'version.html', dict(version=version))
