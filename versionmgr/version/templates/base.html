@@ -9,12 +9,17 @@
                          crossorigin="anonymous"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js" integrity="sha384-0mSbJDEHialfmuBBQP6A4Qrprq5OVfW37PRR3j5ELqxss1yVqOtnepnHVP9aJ7xS" crossorigin="anonymous"></script>
     <style>
+      body { padding-top: 70px; padding-bottom: 70px; }
       .label-info a:link, .label-info a:visited, .label-info a:hover, .label-info a:active {
         color: white
       }
     </style>
   </head>
 <body>
+  {% block head %}
+  {% include '_navbar.html' %}
+  {% endblock head %}
+  {% include '_messages.html' %}
   <div class="container">
 
     <ol class="breadcrumb">
