@@ -102,3 +102,9 @@ class Service(models.Model):
             self.host,
             self.deployment,
         )
+
+
+class Customer(models.Model):
+    name = models.CharField(max_length=100)
+    deployment = models.ForeignKey(Deployment, related_name="customer",
+                                   blank=True, null=True)

@@ -51,7 +51,6 @@ class ObjectView(object):
                 getattr(result, name).append(viewclass.from_dict(x))
         return result
 
-
     def to_dict(self):
         result = dict(type=self.TYPE)
         for k, v in self._attribute_dict():
@@ -77,9 +76,9 @@ class ObjectView(object):
     @staticmethod
     def _must_ignore(k, v):
         return (
-            k.startswith(('__', 'TYPE'))
-            or callable(v)
-            or isinstance(
+            k.startswith(('__', 'TYPE')) or
+            callable(v) or
+            isinstance(
                 v,
                 (
                     staticmethod,
@@ -96,7 +95,6 @@ class ClusterView(ObjectView):
     TYPE = 'Cluster'
     id = None
     name = None
-
 
 
 class HostView(ObjectView):
@@ -175,7 +173,6 @@ def version_write(request):
 @require_GET
 def cluster(request, pk, mode="json"):
     c = models.Cluster.objects.get(pk=pk)
-    apps = {}
     deployments = {}
     applications = {}
     deployapps = {}
@@ -190,7 +187,11 @@ def cluster(request, pk, mode="json"):
                 deployapps[service.deployment.id] = set()
             deployapps[service.deployment.id].add(service.application.id)
 
-            key = "{dep}|{app}|{host}".format(host=service.host.id, dep=service.deployment.id, app=service.application.id)
+            key = "{dep}|{app}|{host}".format(
+                host=service.host.id,
+                dep=service.deployment.id,
+                app=service.application.id,
+            )
             services[key] = dict(
                 id=service.id,
                 version=dict(
@@ -198,7 +199,7 @@ def cluster(request, pk, mode="json"):
                     name=service.version.name
                 )
             )
-    #sets to lists
+    # sets to lists
     for k, v in deployapps.items():
         deployapps[k] = list(v)
 
@@ -226,12 +227,16 @@ def cluster_list(request, mode="json"):
         clusters.append(
             ClusterWithHostsView.from_model(cluster).to_dict()
         )
-    #out of any cluster
-    standalone = [HostView.from_model(x).to_dict() for x in models.Host.objects.filter(cluster__isnull=True)]
+    # out of any cluster
+    standalone = [
+        HostView.from_model(x).to_dict()
+        for x in models.Host.objects.filter(cluster__isnull=True)
+    ]
 
     if mode == 'json':
         return JsonResponse(dict(clusters=clusters, standalone=standalone))
-    return render(request, 'clusters.html', dict(clusters=clusters, standalone=standalone))
+    return render(request, 'clusters.html',
+                  dict(clusters=clusters, standalone=standalone))
 
 
 @require_GET
@@ -312,6 +317,7 @@ def application(request, pk, mode="json"):
     if mode == 'json':
         return JsonResponse(dict(app=data))
     return render(request, 'application.html', dict(app=data))
+
 
 @require_GET
 def deployment(request, pk, mode="json"):
