@@ -30,7 +30,7 @@
 <h2>Deployments</h2>
 <div class="deployments">
   {% for id, deployment in host.deployments.items %}
-  <h3>{{ deployment.name }}</h3>
+  <h3><a href="{% url 'deployment' id %}">{{ deployment.name }}</a></h3>
   <table class="table table-striped table-condensed">
     <thead>
       <tr>
