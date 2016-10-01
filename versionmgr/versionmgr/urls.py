@@ -27,6 +27,8 @@ urlpatterns = [
         dict(mode='html'), name="home"),
     url(r'^html/cluster/(?P<pk>\d+)/?$', views.cluster,
         dict(mode='html'), name="cluster"),
+    url(r'^html/host/?$', views.host_list,
+        dict(mode='html'), name="hosts"),
     url(r'^html/host/(?P<pk>\d+)/?$', views.host,
         dict(mode='html'), name="host"),
     url(r'^html/application/(?P<pk>\d+)/?$', views.application,

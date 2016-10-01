@@ -123,6 +123,7 @@ class ApplicationDetail(ApplicationView):
         services=ServiceWithDepsView,
     )
 
+
 @require_POST
 def version_write(request):
     data = json.loads(request.body.decode("utf-8"))
@@ -232,17 +233,19 @@ def host(request, pk, mode="json"):
         deployment = service.deployment
         if deployment.id not in deployments:
             deployments[deployment.id] = dict(name=deployment.name, apps=[])
+        application = ApplicationView()
+        application.id = service.application.id
+        application.name = service.application.name
+
+        version = VersionView()
+        version.id = service.version.id
+        version.name = service.version.name
+
         deployments[deployment.id]['apps'].append(
             dict(
                 name=deployment.name,
-                application=dict(
-                    id=service.application.id,
-                    name=service.application.name,
-                ),
-                version=dict(
-                    id=service.version.id,
-                    name=service.version.name,
-                )
+                application=application,
+                version=version,
             )
         )
 
@@ -267,6 +270,18 @@ def host(request, pk, mode="json"):
     if mode == 'json':
         return JsonResponse(dict(host=data))
     return render(request, 'host.html', dict(host=data))
+
+
+@require_GET
+def host_list(request, mode="json"):
+    hosts = [
+        HostView.from_model(h)
+        for h in models.Host.objects.order_by('name')
+    ]
+
+    if mode == 'json':
+        return JsonResponse(dict(hosts=[h.to_dict() for h in hosts]))
+    return render(request, 'hosts.html', dict(hosts=hosts))
 
 
 @require_GET
