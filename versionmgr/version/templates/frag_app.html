@@ -1,1 +1,5 @@
+{% if application %}
+<a href="{% url 'application' application.id %}">{{ application.name }}</a>
+{% else %}
 <a href="{% url 'application' id %}">{{ name }}</a>
+{% endif %}

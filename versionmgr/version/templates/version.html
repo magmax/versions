@@ -22,8 +22,8 @@
       {% for service in version.services %}
       <tr>
         <td>{% include 'frag_host.html'       with host=service.host only %}</td>
-        <td>{% include 'frag_deployment.html' with id=service.deployment.id  name=service.deployment.name only %}</td>
-        <td>{% include 'frag_app.html'        with id=service.application.id name=service.application.name only %}</td>
+        <td>{% include 'frag_deployment.html' with deployment=service.deployment only %}</td>
+        <td>{% include 'frag_app.html'        with application=service.application %}</td>
       </tr>
       {% endfor %}
     </tbody>
