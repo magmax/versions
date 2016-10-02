@@ -85,10 +85,17 @@ class Version(models.Model):
         return self.name
 
 
+class Component(models.Model):
+    version = models.ForeignKey(Version, related_name="components")
+    application = models.ForeignKey(Application, related_name="components")
+
+    def __str__(self):
+        return self.name
+
+
 class Service(models.Model):
-    version = models.ForeignKey(Version, related_name="services")
     host = models.ForeignKey(Host, related_name="services")
-    application = models.ForeignKey(Application, related_name="services")
+    component = models.ForeignKey(Component, related_name="services")
     arguments = models.TextField(blank=True, null=True)
     deployment = models.ForeignKey(
         Deployment, related_name="services", blank=True, null=True)
@@ -115,6 +122,22 @@ class CustomerAttribute(models.Model):
     name = models.CharField(max_length=100)
     value = models.TextField()
     customer = models.ForeignKey(Customer, related_name="attributes")
+
+    def __str__(self):
+        return self.name
+
+
+class Product(models.Model):
+    name = models.CharField(max_length=100)
+
+    def __str__(self):
+        return self.name
+
+
+class ProductAttribute(models.Model):
+    name = models.CharField(max_length=100)
+    value = models.TextField()
+    product = models.ForeignKey(Product, related_name="attributes")
 
     def __str__(self):
         return self.name
