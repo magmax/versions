@@ -1,5 +1,9 @@
 {% extends 'base.html' %}
 
+{% block breadcrumb %}
+<li><a href="{% url 'clusters' %}">cluster</a></li>
+{% endblock %}
+
 {% block content %}
 <h1>Cluster list</h1>
 <dl class="dl-horizontal">

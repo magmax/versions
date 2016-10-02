@@ -18,11 +18,11 @@
     </div>
     <div class="navbar-collapse collapse">
       <ul class="nav navbar-nav">
-        <li {% if view.request.path == url_home        %}class="active"{% endif %}><a href="{{ url_home }}">Home</a></li>
-        <li {% if view.request.path == url_customers   %}class="active"{% endif %}><a href="{{ url_customers }}">Customers</a></li>
-        <li {% if view.request.path == url_clusters    %}class="active"{% endif %}><a href="{{ url_clusters }}">Clusters</a></li>
-        <li {% if view.request.path == url_hosts       %}class="active"{% endif %}><a href="{{ url_hosts }}">Hosts</a></li>
-        <li {% if view.request.path == url_deployments %}class="active"{% endif %}><a href="{{ url_deployments }}">Deployments</a></li>
+        <li><a href="{{ url_home }}">Home</a></li>
+        <li><a href="{{ url_customers }}">Customers</a></li>
+        <li><a href="{{ url_clusters }}">Clusters</a></li>
+        <li><a href="{{ url_hosts }}">Hosts</a></li>
+        <li><a href="{{ url_deployments }}">Deployments</a></li>
       </ul>
     </div>
   </div>

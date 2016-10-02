@@ -1,8 +1,8 @@
 {% extends 'base.html' %}
 
 {% block breadcrumb %}
-<li>cluster {% if host.cluster %}<a href="{% url 'cluster' host.cluster.id %}">{{ host.cluster.name }}{% else %}not set{% endif %}</a></li>
-<li>host <a href="{% url 'host' host.id %}">{{ host.name }}</a></li>
+<li><a href="{% url 'hosts' %}">host</a></li>
+<li><a href="{% url 'host' host.id %}">{{ host.name }}</a></li>
 {% endblock %}
 
 {% block content %}

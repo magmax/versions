@@ -173,6 +173,13 @@ def version_write(request):
 
 
 @require_GET
+def index(request, mode="json"):
+    if mode == 'json':
+        return JsonResponse()
+    return render(request, 'base.html')
+
+
+@require_GET
 def cluster(request, pk, mode="json"):
     c = models.Cluster.objects.get(pk=pk)
     deployments = {}

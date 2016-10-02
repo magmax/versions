@@ -23,7 +23,7 @@ urlpatterns = [
     url(r'^version/$', views.version_write),
     url(r'^cluster/(?P<pk>\d+)/?$', views.cluster),
     url(r'^cluster/?$', views.cluster_list),
-    url(r'^html/cluster/?$', views.cluster_list,
+    url(r'^html/?$', views.index,
         dict(mode='html'), name="home"),
     url(r'^html/cluster/(?P<pk>\d+)/?$', views.cluster,
         dict(mode='html'), name="cluster"),

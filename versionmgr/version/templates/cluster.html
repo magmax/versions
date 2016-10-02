@@ -2,7 +2,8 @@
 {% load version_tags %}
 
 {% block breadcrumb %}
-<li>cluster <a href="{% url 'cluster' cluster.id %}">{{ cluster.name }}</a></li>
+<li><a href="{% url 'clusters' %}">cluster</a></li>
+<li><a href="{% url 'cluster' cluster.id %}">{{ cluster.name }}</a></li>
 {% endblock %}
 
 {% block content %}

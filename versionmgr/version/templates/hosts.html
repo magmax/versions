@@ -1,9 +1,12 @@
 {% extends 'base.html' %}
 
 {% block breadcrumb %}
+<li><a href="{% url 'hosts' %}">host</a></li>
 {% endblock %}
 
 {% block content %}
+<h1>Host list</h1>
+
 <ul>
   {% for host in hosts %}
   <li> {% include 'frag_host.html' with host=host only %}</td> </li>
