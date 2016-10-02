@@ -67,6 +67,10 @@ class ObjectView(object):
         return json.dumps(self.to_dict())
 
 
+class AttributeView(ObjectView):
+    fields = ('id', 'name', 'value')
+
+
 class ClusterView(ObjectView):
     fields = ('id', 'name')
 
@@ -116,36 +120,50 @@ class ServiceWithDepsView(ServiceView):
 
 class ClusterDetail(VersionView):
     name_view_map = dict(
+        attributes=AttributeView,
         hosts=HostView,
     )
 
 
+class HostDetail(HostView):
+    foreign_keys = dict(
+        cluster = ClusterView,
+    )
+    name_view_map = dict(
+        attributes=AttributeView,
+    )
+
 class VersionDetail(VersionView):
     name_view_map = dict(
+        attributes=AttributeView,
         services=ServiceWithDepsView,
     )
 
 
 class DeploymentDetail(DeploymentView):
     name_view_map = dict(
+        attributes=AttributeView,
         services=ServiceWithDepsView,
     )
 
 
 class ApplicationDetail(ApplicationView):
     name_view_map = dict(
+        attributes=AttributeView,
         services=ServiceWithDepsView,
     )
 
 
 class CustomerDetail(CustomerView):
     name_view_map = dict(
+        attributes=AttributeView,
         deployments=DeploymentView,
     )
 
 
 class ReleaseDetail(ReleaseView):
     name_view_map = dict(
+        attributes=AttributeView,
         services=ServiceView,
     )
 
@@ -197,49 +215,6 @@ def index(request, mode="json"):
 
 @require_GET
 def cluster(request, pk, mode="json"):
-    # deployments = {}
-    # applications = {}
-    # deployapps = {}
-    # services = {}
-    # hosts = {}
-    # for host in c.hosts.all():
-    #     hosts[host.id] = host.name
-    #     for service in host.services.all():
-    #         deployments[service.deployment.id] = service.deployment.name
-    #         component[service.component.id] = service.component
-    #         applications[service.application.id] = service.application.name
-    #         if service.deployment.id not in deployapps:
-    #             deployapps[service.deployment.id] = set()
-    #         deployapps[service.deployment.id].add(service.application.id)
-
-    #         key = "{dep}|{app}|{host}".format(
-    #             host=service.host.id,
-    #             dep=service.deployment.id,
-    #             app=service.application.id,
-    #         )
-    #         services[key] = dict(
-    #             id=service.id,
-    #             version=dict(
-    #                 id=service.version.id,
-    #                 name=service.version.name
-    #             )
-    #         )
-    # # sets to lists
-    # for k, v in deployapps.items():
-    #     deployapps[k] = list(v)
-
-    # data = dict(
-    #     id=c.id,
-    #     name=c.name,
-    #     attributes=dict(
-    #         (x.name, x.value) for x in c.attributes.all()
-    #     ),
-    #     hosts=hosts,
-    #     deployments=deployments,
-    #     applications=applications,
-    #     services=services,
-    #     deployapps=deployapps,
-    # )
     c = models.Cluster.objects.get(pk=pk)
     data = ClusterDetail.from_model(c)
     if mode == 'json':
@@ -252,11 +227,11 @@ def cluster_list(request, mode="json"):
     clusters = []
     for cluster in models.Cluster.objects.all():
         clusters.append(
-            ClusterWithHostsView.from_model(cluster).to_dict()
+            ClusterWithHostsView.from_model(cluster)
         )
     # out of any cluster
     standalone = [
-        HostView.from_model(x).to_dict()
+        HostView.from_model(x)
         for x in models.Host.objects.filter(cluster__isnull=True)
     ]
 
@@ -269,46 +244,7 @@ def cluster_list(request, mode="json"):
 @require_GET
 def host(request, pk, mode="json"):
     h = models.Host.objects.get(pk=pk)
-    services = h.services.all()
-    deployments = {}
-    for service in services:
-        deployment = service.deployment
-        if deployment.id not in deployments:
-            deployments[deployment.id] = dict(name=deployment.name, apps=[])
-        application = ApplicationView()
-        application.id = service.application.id
-        application.name = service.application.name
-
-        version = VersionView()
-        version.id = service.version.id
-        version.name = service.version.name
-
-        deployments[deployment.id]['apps'].append(
-            dict(
-                name=deployment.name,
-                application=application,
-                version=version,
-            )
-        )
-
-    data = dict(
-        id=h.id,
-        name=h.name,
-        label=h.label,
-        attributes={
-            (x.name, x.value) for x in h.attributes.all()
-        },
-        deployments=deployments,
-    )
-    if h.cluster:
-        data['cluster'] = dict(
-            id=h.cluster.id,
-            name=h.cluster.name,
-            attributes={
-                (x.name, x.value) for x in h.cluster.attributes.all()
-            },
-        )
-
+    data = HostDetail.from_model(h)
     if mode == 'json':
         return JsonResponse(dict(host=data))
     return render(request, 'host.html', dict(host=data))

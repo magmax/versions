@@ -9,12 +9,7 @@
 {% block content %}
 <h1>Cluster {{ cluster.name }}</h1>
 <div class="well">
-  <dl class="dl-horizontal">
-    {% for name, value in cluster.attributes.items %}
-    <dt>{{ name }}</dt>
-    <dd>{{ value|md|safe }}</dd>
-    {% endfor %}
-  </dl>
+  {% include 'frag_attributes.html' with attributes=cluster.attributes %}
 </div>
 
 <table class="table table-condensed table-striped">

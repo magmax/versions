@@ -1,0 +1,10 @@
+<table class="table table-condensed table-striped">
+  <tbody>
+    {% for attribute in attributes %}
+    <tr>
+      <th>{{ attribute.name }}</th>
+      <td>{{ attribute.value|md|safe }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
