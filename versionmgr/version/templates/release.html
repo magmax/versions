@@ -1,0 +1,39 @@
+{% extends 'base.html' %}
+
+{% block breadcrumb %}
+<li><a href="{% url 'releases' %}">release</a></li>
+<li><a href="{% url 'release' release.id %}">{{ release.name }}</a></li>
+{% endblock %}
+
+{% block content %}
+<h1>Release {{ release.name }}</h1>
+<div class="well">
+  <dl class="dl-horizontal">
+    {% for name, value in release.attributes %}
+    <dt>{{ name }}</dt>
+    <dd>{{ value|md|safe }}</dd>
+    {% endfor %}
+  </dl>
+</div>
+
+<h2>Services</h2>
+<div class="installations">
+  <table class="table table-condensed table-striped">
+    <thead>
+      <tr>
+        <th>Host</th>
+        <th>Application</th>
+        <th>Version</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for service in release.services %}
+      <tr>
+        <td>{% include 'frag_app.html' with id=service.application.id name=service.application.name only %}</td>
+        <td>{% include 'frag_version.html' with id=service.version.id name=service.version.name only %}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

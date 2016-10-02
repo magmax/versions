@@ -49,5 +49,9 @@ urlpatterns = [
         dict(mode='html'), name="customer"),
     url(r'^html/customer/?$', views.customer_list,
         dict(mode='html'), name="customers"),
+    url(r'^html/release/(?P<pk>\d+)/?$', views.release,
+        dict(mode='html'), name="release"),
+    url(r'^html/release/?$', views.release_list,
+        dict(mode='html'), name="releases"),
     url(r'^admin/', admin.site.urls),
 ]

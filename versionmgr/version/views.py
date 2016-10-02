@@ -95,6 +95,10 @@ class CustomerView(ObjectView):
     fields = ('id', 'name')
 
 
+class ReleaseView(ObjectView):
+    fields = ('id', 'name')
+
+
 class ClusterWithHostsView(ClusterView):
     name_view_map = dict(
         hosts=HostView,
@@ -131,6 +135,12 @@ class ApplicationDetail(ApplicationView):
 class CustomerDetail(CustomerView):
     name_view_map = dict(
         deployments=DeploymentView,
+    )
+
+
+class ReleaseDetail(ReleaseView):
+    name_view_map = dict(
+        services=ServiceView,
     )
 
 
@@ -376,3 +386,21 @@ def customer_list(request, mode="json"):
     if mode == 'json':
         return JsonResponse(dict(customers=[x.to_dict() for x in objs]))
     return render(request, 'customers.html', dict(customers=objs))
+
+
+@require_GET
+def release(request, pk, mode="json"):
+    v = models.Release.objects.get(pk=pk)
+    release = ReleaseDetail.from_model(v)
+    if mode == 'json':
+        return JsonResponse(dict(release=release))
+    return render(request, 'release.html', dict(release=release))
+
+
+@require_GET
+def release_list(request, mode="json"):
+    objs = generic_list(ReleaseView, models.Release, ['name'])
+
+    if mode == 'json':
+        return JsonResponse(dict(releases=[x.to_dict() for x in objs]))
+    return render(request, 'releases.html', dict(releases=objs))

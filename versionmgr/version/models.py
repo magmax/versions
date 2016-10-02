@@ -114,7 +114,24 @@ class Customer(models.Model):
 class CustomerAttribute(models.Model):
     name = models.CharField(max_length=100)
     value = models.TextField()
-    application = models.ForeignKey(Customer, related_name="attributes")
+    customer = models.ForeignKey(Customer, related_name="attributes")
+
+    def __str__(self):
+        return self.name
+
+
+class Release(models.Model):
+    name = models.CharField(max_length=100)
+    services = models.ManyToManyField(Service, related_name="releases")
+
+    def __str__(self):
+        return self.name
+
+
+class ReleaseAttribute(models.Model):
+    name = models.CharField(max_length=100)
+    value = models.TextField()
+    release = models.ForeignKey(Release, related_name="attributes")
 
     def __str__(self):
         return self.name

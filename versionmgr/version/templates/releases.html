@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+
+{% block breadcrumb %}
+<li><a href="{% url 'releases' %}">release</a></li>
+{% endblock %}
+
+{% block content %}
+<h1>Release list</h1>
+
+<ul>
+  {% for dep in releases %}
+  <li> {% include 'frag_release.html' with release=dep only %}</td> </li>
+  {% endfor %}
+</ul>
+{% endblock %}
