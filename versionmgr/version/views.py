@@ -116,7 +116,7 @@ class ServiceWithDepsView(ServiceView):
 
 class ClusterDetail(VersionView):
     name_view_map = dict(
-#        services=ServiceWithDepsView,
+        hosts=HostView,
     )
 
 
