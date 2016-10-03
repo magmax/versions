@@ -175,6 +175,20 @@ def generic_list(view, model, order_by):
     ]
 
 
+def to_dict(obj):
+    if isinstance(obj, ObjectView):
+        return obj.to_dict()
+    if isinstance(obj, list):
+        return [to_dict(x) for x in obj]
+    if isinstance(obj, dict):
+        return dict((k, to_dict(v)) for k, v in obj.items())
+    return obj
+
+
+def to_json(obj):
+    return json.dumps(obj, default=to_dict)
+
+
 @require_POST
 def version_write(request):
     data = json.loads(request.body.decode("utf-8"))
@@ -190,20 +204,28 @@ def version_write(request):
     deployment, _ = models.Deployment.objects.get_or_create(
         name=data.get('deployment', "default")
     )
+    component, _ = models.Component.objects.get_or_create(
+        version=version,
+        application=app,
+    )
 
     service, created = models.Service.objects.get_or_create(
         host=host,
-        application=app,
         deployment=deployment,
         defaults=dict(
-            version=version
+            component=component,
+            arguments=data.get('arguments'),
         )
+
     )
-    prev_version = None if created else service.version.name
-    service.version = version
+    prev_version = None if created else service.component.version.name
+    service.component = component
     service.save()
 
-    return JsonResponse(dict(result='ok', previous=dict(version=prev_version)))
+    print(prev_version)
+    print(to_dict(dict(version=prev_version)))
+    return JsonResponse(dict(result='ok',
+                             previous=to_dict(dict(version=prev_version))))
 
 
 @require_GET
@@ -218,7 +240,7 @@ def cluster(request, pk, mode="json"):
     c = models.Cluster.objects.get(pk=pk)
     data = ClusterDetail.from_model(c)
     if mode == 'json':
-        return JsonResponse(dict(cluster=data))
+        return JsonResponse(to_dict(dict(cluster=data)))
     return render(request, 'cluster.html', dict(cluster=data))
 
 
@@ -236,7 +258,8 @@ def cluster_list(request, mode="json"):
     ]
 
     if mode == 'json':
-        return JsonResponse(dict(clusters=clusters, standalone=standalone))
+        return JsonResponse(to_dict(dict(clusters=clusters,
+                                         standalone=standalone)))
     return render(request, 'clusters.html',
                   dict(clusters=clusters, standalone=standalone))
 
