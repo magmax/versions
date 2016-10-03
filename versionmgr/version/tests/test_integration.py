@@ -32,22 +32,30 @@ class InsertionByPublicAPITest(TestCase):
         assert response.json()['previous']['version'] == '0.0.1'
 
 
-class RetrieveByPublicAPITest(TestCase):
-    def test_retrieve_cluster_list(self):
-        cluster = factories.ClusterFactory()
+class RetrieveClusterByPublicAPITest(TestCase):
+    def setUp(self):
+        self.cluster = factories.ClusterFactory()
+        self.client = Client()
 
-        c = Client()
-        response = c.get('/cluster/')
+    def test_retrieve_cluster_list_as_json(self):
+        response = self.client.get('/cluster/')
         body = response.json()
         assert 'clusters' in body
         clusters = body['clusters']
         assert len(clusters) == 1
-        assert clusters[0]['name'] == cluster.name
+        assert clusters[0]['name'] == self.cluster.name
 
-    def test_retrieve_cluster(self):
-        cluster = factories.ClusterFactory()
+    def test_retrieve_cluster_list_as_html(self):
+        response = self.client.get('/html/cluster')
+        assert response.status_code == 200
+        assert 'text/html' in response.get("content-type")
 
-        c = Client()
-        response = c.get('/cluster/%s' % cluster.id)
+    def test_retrieve_cluster_as_json(self):
+        response = self.client.get('/cluster/%s' % self.cluster.id)
         body = response.json()
         assert body is not None
+
+    def test_retrieve_cluster_as_html(self):
+        response = self.client.get('/html/cluster/%s' % self.cluster.id)
+        assert response.status_code == 200
+        assert 'text/html' in response.get("content-type")
