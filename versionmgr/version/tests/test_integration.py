@@ -59,3 +59,67 @@ class RetrieveClusterByPublicAPITest(TestCase):
         response = self.client.get('/html/cluster/%s' % self.cluster.id)
         assert response.status_code == 200
         assert 'text/html' in response.get("content-type")
+
+
+class RetrieveCustomerByPublicAPITest(TestCase):
+    def setUp(self):
+        self.customer = factories.CustomerFactory()
+        self.client = Client()
+
+    def test_retrieve_customer_list_as_html(self):
+        response = self.client.get('/html/customer')
+        assert response.status_code == 200
+        assert 'text/html' in response.get("content-type")
+
+    def test_retrieve_customer_as_html(self):
+        response = self.client.get('/html/customer/%s' % self.customer.id)
+        assert response.status_code == 200
+        assert 'text/html' in response.get("content-type")
+
+
+class RetrieveHostsByPublicAPITest(TestCase):
+    def setUp(self):
+        self.host = factories.HostFactory()
+        self.client = Client()
+
+    def test_retrieve_customer_list_as_html(self):
+        response = self.client.get('/html/host')
+        assert response.status_code == 200
+        assert 'text/html' in response.get("content-type")
+
+    def test_retrieve_customer_as_html(self):
+        response = self.client.get('/html/host/%s' % self.host.id)
+        assert response.status_code == 200
+        assert 'text/html' in response.get("content-type")
+
+
+class RetrieveDeploymentsByPublicAPITest(TestCase):
+    def setUp(self):
+        self.deployment = factories.DeploymentFactory()
+        self.client = Client()
+
+    def test_retrieve_deployment_list_as_html(self):
+        response = self.client.get('/html/deployment')
+        assert response.status_code == 200
+        assert 'text/html' in response.get("content-type")
+
+    def test_retrieve_deployment_as_html(self):
+        response = self.client.get('/html/deployment/%s' % self.deployment.id)
+        assert response.status_code == 200
+        assert 'text/html' in response.get("content-type")
+
+
+class RetrieveReleasesByPublicAPITest(TestCase):
+    def setUp(self):
+        self.release = factories.ReleaseFactory()
+        self.client = Client()
+
+    def test_retrieve_release_list_as_html(self):
+        response = self.client.get('/html/release')
+        assert response.status_code == 200
+        assert 'text/html' in response.get("content-type")
+
+    def test_retrieve_release_as_html(self):
+        response = self.client.get('/html/release/%s' % self.release.id)
+        assert response.status_code == 200
+        assert 'text/html' in response.get("content-type")
