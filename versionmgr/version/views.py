@@ -1,12 +1,22 @@
+import re
 import json
 import logging
+import hashlib
+from functools import wraps
 from django.http import JsonResponse
 from django.views.decorators.http import require_POST, require_GET
-from django.shortcuts import render
-
+from django.shortcuts import render, redirect
+from django.contrib.auth.views import redirect_to_login, logout_then_login
+from django.contrib import auth
+from django.contrib.auth.decorators import permission_required
+from django.contrib import messages
+from django import db
+from django.core.mail import send_mail
+from django.conf import settings
 from . import models
 
 logger = logging.getLogger(__name__)
+
 
 
 class UnserializationException(Exception):
@@ -222,20 +232,76 @@ def version_write(request):
     service.component = component
     service.save()
 
-    print(prev_version)
-    print(to_dict(dict(version=prev_version)))
     return JsonResponse(dict(result='ok',
                              previous=to_dict(dict(version=prev_version))))
+
+def registerView(request):
+    if request.method == 'GET':
+        return render(request, 'registration/register.html')
+    email = request.POST.get('email')
+    m = re.match("[\w_\-\+\.]+@([\w\-_]+\.[\w\-_\.]*\w)$", email)
+    if not m:
+        messages.error(request, 'The email %s does not look like an email'
+                       % email)
+        return redirect(registerView)
+    if settings.COMPANY_DOMAIN and settings.COMPANY_DOMAIN != m.group(1):
+        messages.error(request, 'The email %s does not belongs to the company'
+                       % email)
+    password = request.POST.get('password')
+    try:
+        user = auth.models.User.objects.create(
+            username=email,
+            email=email,
+        )
+        user.set_password(password)
+        user.save()
+    except db.utils.IntegrityError as e:
+        messages.error(request, 'The user %s already exists.' % email)
+        return redirect(registerView)
+    except Exception as e:
+        messages.error(request, 'The user %s could not be created. %s'
+                       % (username, e))
+        return redirect(registerView)
+
+    url = "%s://%s" % (request.scheme, request.get_host())
+    key = "%s.%s" % (user.id, hashlib.sha1(email.encode()).hexdigest()[:12])
+    message = render(request, 'registration/email.html', {'key': key, 'site_url': url}).content.decode()
+    send_mail(
+        "Board registration",
+        message,
+        from_email=settings.EMAIL_FROM,
+        recipient_list=[email],
+        html_message=message,
+    )
+    messages.info("An email has been sent to you in order to confirm your email address")
+    return redirect_to_login(request.get_full_path())
+
+
+def registerConfirmView(request, key):
+    id, mailhash = key.rsplit('.', 1)
+    try:
+        user = auth.models.User.objects.get(pk=id)
+        if mailhash == hashlib.sha1(user.email.encode()).hexdigest()[:12]:
+            user.groups.add(models.get_or_create_registered_group())
+            return redirect_to_login(request.get_full_path())
+    except Exception as e:
+        logger.exception("Semething bad happened confirming views")
+    messages.error(request, "The confirmation url is not valid")
+    return redirect(registerView)
 
 
 @require_GET
 def index(request, mode="json"):
+    if not request.user.is_authenticated():
+        return redirect_to_login(request.get_full_path())
+
     if mode == 'json':
         return JsonResponse()
-    return render(request, 'base.html')
+    return render(request, 'logged.html')
 
 
 @require_GET
+@permission_required('view_version')
 def cluster(request, pk, mode="json"):
     c = models.Cluster.objects.get(pk=pk)
     data = ClusterDetail.from_model(c)
@@ -245,6 +311,7 @@ def cluster(request, pk, mode="json"):
 
 
 @require_GET
+@permission_required('view_version')
 def cluster_list(request, mode="json"):
     clusters = []
     for cluster in models.Cluster.objects.all():
@@ -265,6 +332,7 @@ def cluster_list(request, mode="json"):
 
 
 @require_GET
+@permission_required('view_version')
 def host(request, pk, mode="json"):
     h = models.Host.objects.get(pk=pk)
     data = HostDetail.from_model(h)
@@ -274,6 +342,7 @@ def host(request, pk, mode="json"):
 
 
 @require_GET
+@permission_required('view_version')
 def host_list(request, mode="json"):
     hosts = generic_list(HostView, models.Host, ['name'])
 
@@ -283,6 +352,7 @@ def host_list(request, mode="json"):
 
 
 @require_GET
+@permission_required('view_version')
 def application(request, pk, mode="json"):
     a = models.Application.objects.get(pk=pk)
     data = ApplicationDetail.from_model(a)
@@ -292,6 +362,7 @@ def application(request, pk, mode="json"):
 
 
 @require_GET
+@permission_required('view_version')
 def application_list(request, mode="json"):
     objs = generic_list(ApplicationView, models.Application, ['label', 'name'])
 
@@ -301,6 +372,7 @@ def application_list(request, mode="json"):
 
 
 @require_GET
+@permission_required('view_version')
 def deployment(request, pk, mode="json"):
     d = models.Deployment.objects.get(pk=pk)
     data = DeploymentDetail.from_model(d)
@@ -311,6 +383,7 @@ def deployment(request, pk, mode="json"):
 
 
 @require_GET
+@permission_required('view_version')
 def deployment_list(request, mode="json"):
     objs = generic_list(DeploymentView, models.Deployment, ['label', 'name'])
 
@@ -320,6 +393,7 @@ def deployment_list(request, mode="json"):
 
 
 @require_GET
+@permission_required('view_version')
 def version(request, pk, mode="json"):
     v = models.Version.objects.get(pk=pk)
     version = VersionDetail.from_model(v)
@@ -329,6 +403,7 @@ def version(request, pk, mode="json"):
 
 
 @require_GET
+@permission_required('view_version')
 def version_list(request, mode="json"):
     objs = generic_list(VersionView, models.Version, ['name'])
 
@@ -338,6 +413,7 @@ def version_list(request, mode="json"):
 
 
 @require_GET
+@permission_required('view_version')
 def customer(request, pk, mode="json"):
     v = models.Customer.objects.get(pk=pk)
     customer = CustomerDetail.from_model(v)
@@ -347,6 +423,7 @@ def customer(request, pk, mode="json"):
 
 
 @require_GET
+@permission_required('view_version')
 def customer_list(request, mode="json"):
     objs = generic_list(CustomerView, models.Customer, ['name'])
 
@@ -356,6 +433,7 @@ def customer_list(request, mode="json"):
 
 
 @require_GET
+@permission_required('view_version')
 def release(request, pk, mode="json"):
     v = models.Release.objects.get(pk=pk)
     release = ReleaseDetail.from_model(v)
@@ -365,6 +443,7 @@ def release(request, pk, mode="json"):
 
 
 @require_GET
+@permission_required('view_version')
 def release_list(request, mode="json"):
     objs = generic_list(ReleaseView, models.Release, ['name'])
 

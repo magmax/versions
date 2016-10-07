@@ -17,16 +17,12 @@
   </head>
 <body>
   {% block head %}
-  {% include '_navbar.html' %}
   {% endblock head %}
   {% include '_messages.html' %}
   <div class="container">
 
-    <ol class="breadcrumb">
-      <li><a href="{% url 'home' %}">home</a></li>
-      {% block breadcrumb %}
-      {% endblock %}
-    </ol>
+    {% block breadcrumb_main %}
+    {% endblock breadcrumb_main %}
 
     {% block content %}
     {% endblock %}

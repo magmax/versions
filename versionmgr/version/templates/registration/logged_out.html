@@ -1,0 +1,18 @@
+{% extends "base.html"%}
+
+{% block content %}
+
+<div class="container">
+  <div class="row">
+    <div class="col-md-6 col-md-offset-3">
+      <div class="jumbotron">
+        <h2>Logged out</h2>
+
+        <a href="{% url 'login' %}">Log in again</a>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

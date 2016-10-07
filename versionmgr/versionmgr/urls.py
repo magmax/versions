@@ -13,7 +13,7 @@ Including another URLconf
     1. Import the include() function: from django.conf.urls import url, include
     2. Add a URL to urlpatterns:  url(r'^blog/', include('blog.urls'))
 """
-from django.conf.urls import url
+from django.conf.urls import url, include
 from django.contrib import admin
 
 from version import views
@@ -53,5 +53,8 @@ urlpatterns = [
         dict(mode='html'), name="release"),
     url(r'^html/release/?$', views.release_list,
         dict(mode='html'), name="releases"),
+    url(r'^accounts/', include('django.contrib.auth.urls')),
+    url(r'^register/?$', views.registerView, name='register'),
+    url(r'^register/confirm/(?P<key>.+)/?$', views.registerConfirmView, name='registration_confirm'),
     url(r'^admin/', admin.site.urls),
 ]
