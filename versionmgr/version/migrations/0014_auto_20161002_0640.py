@@ -7,12 +7,10 @@ import django.utils.timezone
 
 
 def create_components(apps, schema_editor):
-    db_alias = schema_editor.connection.alias
-
     Service = apps.get_model('version', 'Service')
     Component = apps.get_model('version', 'Component')
-    for service in Service.objects.using(db_alias).all():
-        component, _ = Component.objects.using(db_alias).get_or_create(
+    for service in Service.objects.all():
+        component, _ = Component.objects.get_or_create(
             version = service.version,
             application = service.application,
         )

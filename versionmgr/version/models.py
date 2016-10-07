@@ -1,7 +1,4 @@
 from django.db import models
-from django.conf import settings
-from django.contrib.contenttypes.models import ContentType
-from django.contrib import auth
 
 
 class Cluster(models.Model):
@@ -87,6 +84,11 @@ class Version(models.Model):
     def __str__(self):
         return self.name
 
+    class Meta:
+        permissions = (
+            ('view_version', 'Can see version data'),
+        )
+
 
 class Component(models.Model):
     version = models.ForeignKey(Version, related_name="components")
@@ -161,18 +163,3 @@ class ReleaseAttribute(models.Model):
 
     def __str__(self):
         return self.name
-
-
-def get_or_create_registered_group():
-    group, created = auth.models.Group.objects.get_or_create(
-        name=settings.REGISTERED_GROUP
-    )
-    if created:
-        for model in [Version]:
-            perm, _ = auth.models.Permission.objects.get_or_create(
-                codename="view_%s" % model.__name__.lower(),
-                name="Can view %s" % model.__name__.lower(),
-                content_type=ContentType.objects.get_for_model(model)
-            )
-            group.permissions.add(perm)
-    return group

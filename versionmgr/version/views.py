@@ -282,7 +282,7 @@ def registerConfirmView(request, key):
     try:
         user = auth.models.User.objects.get(pk=id)
         if mailhash == hashlib.sha1(user.email.encode()).hexdigest()[:12]:
-            user.groups.add(models.get_or_create_registered_group())
+            user.groups.add(models.Group.get(settings.REGISTERED_GROUP))
             return redirect_to_login(request.get_full_path())
     except Exception as e:
         logger.exception("Semething bad happened confirming views")
