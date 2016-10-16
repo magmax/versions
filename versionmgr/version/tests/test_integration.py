@@ -35,7 +35,18 @@ class InsertionByPublicAPITest(TestCase):
         assert response.json()['previous']['version'] == '0.0.1'
 
 
-class RetrieveClusterByPublicAPITest(TestCase):
+class mixin(object):
+    def get(self, path, method, **kwargs):
+        request = self.request_factory.get(path)
+        request.user = self.user
+        response = method(request, **kwargs)
+        return response
+
+    def get_json(self, path, method, **kwargs):
+        return json.loads(self.get(path, method, **kwargs).content.decode())
+
+
+class RetrieveClusterByPublicAPITest(TestCase, mixin):
     def setUp(self):
         self.cluster = factories.ClusterFactory()
         self.client = Client()
@@ -43,30 +54,29 @@ class RetrieveClusterByPublicAPITest(TestCase):
         self.user = factories.UserFactory(groups=('registered',))
 
     def test_retrieve_cluster_list_as_json(self):
-        response = self.client.get('/cluster/')
-        body = response.json()
+        body = self.get_json('/cluster', views.cluster_list, mode='json')
         assert 'clusters' in body
         clusters = body['clusters']
         assert len(clusters) == 1
         assert clusters[0]['name'] == self.cluster.name
 
     def test_retrieve_cluster_list_as_html(self):
-        response = self.client.get('/html/cluster')
+        response = self.get('/cluster', views.cluster_list, mode='html')
         assert response.status_code == 200
         assert 'text/html' in response.get("content-type")
 
     def test_retrieve_cluster_as_json(self):
-        response = self.client.get('/cluster/%s' % self.cluster.id)
-        body = response.json()
+        body = self.get_json('/cluster/%s' % self.cluster.id,
+                             views.cluster,
+                             mode='json',
+                             pk=self.cluster.id)
         assert body is not None
+        assert 'cluster' in body
 
     def test_retrieve_cluster_as_html(self):
         request = self.request_factory.get('/html/cluster/%s' % self.cluster.id)
         request.user = self.user
         response = views.cluster(request, self.cluster.id, mode='html')
-        print(self.user.has_perm('view_version'))
-        print(self.user.groups.first().permissions.all())
-        print(User.objects.get(id=self.user.id).has_perm('view_version'))
         assert response.status_code == 200
         assert 'text/html' in response.get("content-type")
 
