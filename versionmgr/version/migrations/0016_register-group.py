@@ -6,24 +6,6 @@ from django.db import migrations
 from django.conf import settings
 
 
-def create_permissions(apps, schema_editor):
-    db_alias = schema_editor.connection.alias
-
-    Group = apps.get_model('auth', 'Group')
-    Permission = apps.get_model('auth', 'Permission')
-
-    perm = Permission.objects.get(codename="view_version")
-    group, _ = Group.objects.get_or_create(
-        name=settings.REGISTERED_GROUP
-    )
-    group.permissions.add(perm)
-    group.save()
-
-def revert_components(apps, schema_editor):
-    Group = apps.get_model('auth', 'Group')
-    Group.objects.filter(name=settings.REGISTERED_GROUP).delete()
-
-
 class Migration(migrations.Migration):
 
     dependencies = [
@@ -31,8 +13,8 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.RunPython(
-            create_permissions,
-            revert_components
+        migrations.AlterModelOptions(
+            name='version',
+            options={'permissions': (('view_version', 'Can see version data'),)},
         ),
     ]

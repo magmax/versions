@@ -301,7 +301,7 @@ def index(request, mode="json"):
 
 
 @require_GET
-@permission_required('view_version')
+@permission_required('version.view_version')
 def cluster(request, pk, mode="json"):
     c = models.Cluster.objects.get(pk=pk)
     data = ClusterDetail.from_model(c)
@@ -311,7 +311,7 @@ def cluster(request, pk, mode="json"):
 
 
 @require_GET
-@permission_required('view_version')
+@permission_required('version.view_version')
 def cluster_list(request, mode="json"):
     clusters = []
     for cluster in models.Cluster.objects.all():
@@ -332,7 +332,7 @@ def cluster_list(request, mode="json"):
 
 
 @require_GET
-@permission_required('view_version')
+@permission_required('version.view_version')
 def host(request, pk, mode="json"):
     h = models.Host.objects.get(pk=pk)
     data = HostDetail.from_model(h)
@@ -342,7 +342,7 @@ def host(request, pk, mode="json"):
 
 
 @require_GET
-@permission_required('view_version')
+@permission_required('version.view_version')
 def host_list(request, mode="json"):
     hosts = generic_list(HostView, models.Host, ['name'])
 
@@ -352,7 +352,7 @@ def host_list(request, mode="json"):
 
 
 @require_GET
-@permission_required('view_version')
+@permission_required('version.view_version')
 def application(request, pk, mode="json"):
     a = models.Application.objects.get(pk=pk)
     data = ApplicationDetail.from_model(a)
@@ -362,7 +362,7 @@ def application(request, pk, mode="json"):
 
 
 @require_GET
-@permission_required('view_version')
+@permission_required('version.view_version')
 def application_list(request, mode="json"):
     objs = generic_list(ApplicationView, models.Application, ['label', 'name'])
 
@@ -372,7 +372,7 @@ def application_list(request, mode="json"):
 
 
 @require_GET
-@permission_required('view_version')
+@permission_required('version.view_version')
 def deployment(request, pk, mode="json"):
     d = models.Deployment.objects.get(pk=pk)
     data = DeploymentDetail.from_model(d)
@@ -383,7 +383,7 @@ def deployment(request, pk, mode="json"):
 
 
 @require_GET
-@permission_required('view_version')
+@permission_required('version.view_version')
 def deployment_list(request, mode="json"):
     objs = generic_list(DeploymentView, models.Deployment, ['label', 'name'])
 
@@ -393,7 +393,7 @@ def deployment_list(request, mode="json"):
 
 
 @require_GET
-@permission_required('view_version')
+@permission_required('version.view_version')
 def version(request, pk, mode="json"):
     v = models.Version.objects.get(pk=pk)
     version = VersionDetail.from_model(v)
@@ -403,7 +403,7 @@ def version(request, pk, mode="json"):
 
 
 @require_GET
-@permission_required('view_version')
+@permission_required('version.view_version')
 def version_list(request, mode="json"):
     objs = generic_list(VersionView, models.Version, ['name'])
 
@@ -413,7 +413,7 @@ def version_list(request, mode="json"):
 
 
 @require_GET
-@permission_required('view_version')
+@permission_required('version.view_version')
 def customer(request, pk, mode="json"):
     v = models.Customer.objects.get(pk=pk)
     customer = CustomerDetail.from_model(v)
@@ -423,7 +423,7 @@ def customer(request, pk, mode="json"):
 
 
 @require_GET
-@permission_required('view_version')
+@permission_required('version.view_version')
 def customer_list(request, mode="json"):
     objs = generic_list(CustomerView, models.Customer, ['name'])
 
@@ -433,7 +433,7 @@ def customer_list(request, mode="json"):
 
 
 @require_GET
-@permission_required('view_version')
+@permission_required('version.view_version')
 def release(request, pk, mode="json"):
     v = models.Release.objects.get(pk=pk)
     release = ReleaseDetail.from_model(v)
@@ -443,7 +443,7 @@ def release(request, pk, mode="json"):
 
 
 @require_GET
-@permission_required('view_version')
+@permission_required('version.view_version')
 def release_list(request, mode="json"):
     objs = generic_list(ReleaseView, models.Release, ['name'])
 

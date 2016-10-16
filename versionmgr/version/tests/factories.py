@@ -2,9 +2,37 @@ import factory
 from faker import Factory as FakerFactory
 
 from version import models
+from django.contrib import auth
+
 
 faker = FakerFactory.create()
 faker.seed(1234)
+
+
+class UserFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = auth.models.User
+
+    username = factory.LazyAttribute(lambda x: faker.first_name())
+    email = factory.LazyAttribute(lambda x: faker.email())
+
+    @factory.post_generation
+    def groups(self, create, extracted, **kwargs):
+        if not create:
+            # Simple build, do nothing.
+            return
+
+        if extracted:
+            for group in extracted:
+                if isinstance(group, str):
+                    grp = auth.models.Group.objects.get(name=group)
+                    self.groups.add(grp)
+                    if group == 'registered':
+                        perm = auth.models.Permission.objects.get(codename="view_version")
+                        grp.permissions.add(perm)
+                        grp.save()
+                else:
+                    self.groups.add(group)
 
 
 class ClusterFactory(factory.django.DjangoModelFactory):

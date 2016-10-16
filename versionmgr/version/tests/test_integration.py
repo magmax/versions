@@ -1,8 +1,11 @@
-from django.test import TestCase
+from django.test import TestCase, RequestFactory
 from django.test import Client
+from django.contrib.auth.models import AnonymousUser, User
+
 import json
 
 from . import factories
+from version import views
 
 
 class InsertionByPublicAPITest(TestCase):
@@ -36,6 +39,8 @@ class RetrieveClusterByPublicAPITest(TestCase):
     def setUp(self):
         self.cluster = factories.ClusterFactory()
         self.client = Client()
+        self.request_factory = RequestFactory()
+        self.user = factories.UserFactory(groups=('registered',))
 
     def test_retrieve_cluster_list_as_json(self):
         response = self.client.get('/cluster/')
@@ -56,7 +61,12 @@ class RetrieveClusterByPublicAPITest(TestCase):
         assert body is not None
 
     def test_retrieve_cluster_as_html(self):
-        response = self.client.get('/html/cluster/%s' % self.cluster.id)
+        request = self.request_factory.get('/html/cluster/%s' % self.cluster.id)
+        request.user = self.user
+        response = views.cluster(request, self.cluster.id, mode='html')
+        print(self.user.has_perm('view_version'))
+        print(self.user.groups.first().permissions.all())
+        print(User.objects.get(id=self.user.id).has_perm('view_version'))
         assert response.status_code == 200
         assert 'text/html' in response.get("content-type")
 
