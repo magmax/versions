@@ -39,18 +39,17 @@ class InsertionByPublicAPITest(TestCase):
 
 
 class mixin(object):
-    def get(self, path, method, **kwargs):
+    def get(self, path, m, **kwargs):
         request = self.request_factory.get(path)
         request.user = self.user
-        print(method)
-        response = method(request, **kwargs)
+        response = m(request, **kwargs)
         return response
 
     def get_json(self, path, method, **kwargs):
         return json.loads(self.get(path, method, **kwargs).content.decode())
 
 
-class BasicTests(mixin):
+class BasicTests(object):
     """
     Requires:
     - self.url: the base url
@@ -61,18 +60,19 @@ class BasicTests(mixin):
     def setUp(self):
         self.request_factory = RequestFactory()
         self.user = factories.UserFactory(groups=('registered',))
-        self.obj = factories.get_for_model(self.model)
 
     def test_retrieve_object_list_as_html(self):
-        response = self.get(self.url, self.view_list, mode='html')
+        request = self.request_factory.get(self.url)
+        request.user = self.user
+        response = self.create_list(request, mode='html')
         assert response.status_code == 200
         assert 'text/html' in response.get("content-type")
 
     def test_retrieve_object_as_html(self):
-        response = self.get('%s/%s' % (self.url, self.obj.id),
-                            self.view_one,
-                            pk=self.obj.id,
-                            mode='html')
+        obj = factories.get_for_model(self.model)
+        request = self.request_factory.get('%s/%s' % (self.url, obj.id))
+        request.user = self.user
+        response = self.create_one(request, pk=obj.id, mode='html')
         assert response.status_code == 200
         assert 'text/html' in response.get("content-type")
 
@@ -111,82 +111,57 @@ class RetrieveClusterByPublicAPITest(TestCase, mixin):
         assert 'text/html' in response.get("content-type")
 
 
+class RetrieveCustomerByPublicAPITest(TestCase, BasicTests):
+    url = '/html/customer'
+    model = models.Customer
 
-class OLDRetrieveCustomerByPublicAPITest(TestCase, mixin):
     def setUp(self):
-        self.customer = factories.CustomerFactory()
-        self.request_factory = RequestFactory()
-        self.user = factories.UserFactory(groups=('registered',))
+        BasicTests.setUp(self)
 
-    def test_retrieve_customer_list_as_html(self):
-        response = self.get('/html/customer', views.customer_list, mode='html')
-        assert response.status_code == 200
-        assert 'text/html' in response.get("content-type")
+    def create_one(self, request, **kwargs):
+        return views.customer(request, **kwargs)
 
-    def test_retrieve_customer_as_html(self):
-        response = self.get('/html/customer/%s' % self.customer.id,
-                            views.customer,
-                            pk=self.customer.id,
-                            mode='html')
-        assert response.status_code == 200
-        assert 'text/html' in response.get("content-type")
+    def create_list(self, request, **kwargs):
+        return views.customer_list(request, **kwargs)
 
 
-class RetrieveHostsByPublicAPITest(TestCase, mixin):
+class RetrieveHostsByPublicAPITest(TestCase, BasicTests):
+    url = '/html/host'
+    model = models.Host
+
     def setUp(self):
-        self.host = factories.HostFactory()
-        self.request_factory = RequestFactory()
-        self.user = factories.UserFactory(groups=('registered',))
+        BasicTests.setUp(self)
 
-    def test_retrieve_host_list_as_html(self):
-        response = self.get('/html/host', views.host_list, mode='html')
-        assert response.status_code == 200
-        assert 'text/html' in response.get("content-type")
+    def create_one(self, request, **kwargs):
+        return views.host(request, **kwargs)
 
-    def test_retrieve_host_as_html(self):
-        response = self.get('/html/customer/%s' % self.host.id,
-                            views.host,
-                            pk=self.host.id,
-                            mode='html')
-        assert response.status_code == 200
-        assert 'text/html' in response.get("content-type")
+    def create_list(self, request, **kwargs):
+        return views.host_list(request, **kwargs)
 
 
-class RetrieveDeploymentsByPublicAPITest(TestCase, mixin):
+class RetrieveDeploymentsByPublicAPITest(TestCase, BasicTests):
+    url = '/html/deployment'
+    model = models.Deployment
+
     def setUp(self):
-        self.deployment = factories.DeploymentFactory()
-        self.request_factory = RequestFactory()
-        self.user = factories.UserFactory(groups=('registered',))
+        BasicTests.setUp(self)
 
-    def test_retrieve_deployment_list_as_html(self):
-        response = self.get('/html/deployment', views.deployment_list, mode='html')
-        assert response.status_code == 200
-        assert 'text/html' in response.get("content-type")
+    def create_one(self, request, **kwargs):
+        return views.deployment(request, **kwargs)
 
-    def test_retrieve_deployment_as_html(self):
-        response = self.get('/html/deployment/%s' % self.deployment.id,
-                            views.deployment,
-                            pk=self.deployment.id,
-                            mode='html')
-        assert response.status_code == 200
-        assert 'text/html' in response.get("content-type")
+    def create_list(self, request, **kwargs):
+        return views.deployment_list(request, **kwargs)
 
 
-class RetrieveReleasesByPublicAPITest(TestCase, mixin):
+class RetrieveReleasesByPublicAPITest(TestCase, BasicTests):
+    url = '/html/release'
+    model = models.Release
+
     def setUp(self):
-        self.release = factories.ReleaseFactory()
-        self.request_factory = RequestFactory()
-        self.user = factories.UserFactory(groups=('registered',))
+        BasicTests.setUp(self)
 
-    def test_retrieve_release_list_as_html(self):
-        response = self.get('/html/release', views.release_list, mode='html')
-        assert response.status_code == 200
-        assert 'text/html' in response.get("content-type")
+    def create_one(self, request, **kwargs):
+        return views.release(request, **kwargs)
 
-    def test_retrieve_release_as_html(self):
-        response = self.get('/html/release/%s' % self.release.id,
-                            views.release,
-                            pk=self.release.id,
-                            mode='html')
-        assert response.status_code == 200
-        assert 'text/html' in response.get("content-type")
+    def create_list(self, request, **kwargs):
+        return views.release_list(request, **kwargs)
