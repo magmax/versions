@@ -5,7 +5,10 @@ from django.contrib.auth.models import AnonymousUser, User
 import json
 
 from . import factories
-from version import views
+from version import (
+    views,
+    models,
+)
 
 
 class InsertionByPublicAPITest(TestCase):
@@ -39,6 +42,7 @@ class mixin(object):
     def get(self, path, method, **kwargs):
         request = self.request_factory.get(path)
         request.user = self.user
+        print(method)
         response = method(request, **kwargs)
         return response
 
@@ -46,10 +50,36 @@ class mixin(object):
         return json.loads(self.get(path, method, **kwargs).content.decode())
 
 
+class BasicTests(mixin):
+    """
+    Requires:
+    - self.url: the base url
+    - self.model: the model to be used
+    - self.view_list: the view method for lists
+    - self.view_one: the view method for one object
+    """
+    def setUp(self):
+        self.request_factory = RequestFactory()
+        self.user = factories.UserFactory(groups=('registered',))
+        self.obj = factories.get_for_model(self.model)
+
+    def test_retrieve_object_list_as_html(self):
+        response = self.get(self.url, self.view_list, mode='html')
+        assert response.status_code == 200
+        assert 'text/html' in response.get("content-type")
+
+    def test_retrieve_object_as_html(self):
+        response = self.get('%s/%s' % (self.url, self.obj.id),
+                            self.view_one,
+                            pk=self.obj.id,
+                            mode='html')
+        assert response.status_code == 200
+        assert 'text/html' in response.get("content-type")
+
+
 class RetrieveClusterByPublicAPITest(TestCase, mixin):
     def setUp(self):
         self.cluster = factories.ClusterFactory()
-        self.client = Client()
         self.request_factory = RequestFactory()
         self.user = factories.UserFactory(groups=('registered',))
 
@@ -81,65 +111,82 @@ class RetrieveClusterByPublicAPITest(TestCase, mixin):
         assert 'text/html' in response.get("content-type")
 
 
-class RetrieveCustomerByPublicAPITest(TestCase):
+
+class OLDRetrieveCustomerByPublicAPITest(TestCase, mixin):
     def setUp(self):
         self.customer = factories.CustomerFactory()
-        self.client = Client()
+        self.request_factory = RequestFactory()
+        self.user = factories.UserFactory(groups=('registered',))
 
     def test_retrieve_customer_list_as_html(self):
-        response = self.client.get('/html/customer')
+        response = self.get('/html/customer', views.customer_list, mode='html')
         assert response.status_code == 200
         assert 'text/html' in response.get("content-type")
 
     def test_retrieve_customer_as_html(self):
-        response = self.client.get('/html/customer/%s' % self.customer.id)
+        response = self.get('/html/customer/%s' % self.customer.id,
+                            views.customer,
+                            pk=self.customer.id,
+                            mode='html')
         assert response.status_code == 200
         assert 'text/html' in response.get("content-type")
 
 
-class RetrieveHostsByPublicAPITest(TestCase):
+class RetrieveHostsByPublicAPITest(TestCase, mixin):
     def setUp(self):
         self.host = factories.HostFactory()
-        self.client = Client()
+        self.request_factory = RequestFactory()
+        self.user = factories.UserFactory(groups=('registered',))
 
-    def test_retrieve_customer_list_as_html(self):
-        response = self.client.get('/html/host')
+    def test_retrieve_host_list_as_html(self):
+        response = self.get('/html/host', views.host_list, mode='html')
         assert response.status_code == 200
         assert 'text/html' in response.get("content-type")
 
-    def test_retrieve_customer_as_html(self):
-        response = self.client.get('/html/host/%s' % self.host.id)
+    def test_retrieve_host_as_html(self):
+        response = self.get('/html/customer/%s' % self.host.id,
+                            views.host,
+                            pk=self.host.id,
+                            mode='html')
         assert response.status_code == 200
         assert 'text/html' in response.get("content-type")
 
 
-class RetrieveDeploymentsByPublicAPITest(TestCase):
+class RetrieveDeploymentsByPublicAPITest(TestCase, mixin):
     def setUp(self):
         self.deployment = factories.DeploymentFactory()
-        self.client = Client()
+        self.request_factory = RequestFactory()
+        self.user = factories.UserFactory(groups=('registered',))
 
     def test_retrieve_deployment_list_as_html(self):
-        response = self.client.get('/html/deployment')
+        response = self.get('/html/deployment', views.deployment_list, mode='html')
         assert response.status_code == 200
         assert 'text/html' in response.get("content-type")
 
     def test_retrieve_deployment_as_html(self):
-        response = self.client.get('/html/deployment/%s' % self.deployment.id)
+        response = self.get('/html/deployment/%s' % self.deployment.id,
+                            views.deployment,
+                            pk=self.deployment.id,
+                            mode='html')
         assert response.status_code == 200
         assert 'text/html' in response.get("content-type")
 
 
-class RetrieveReleasesByPublicAPITest(TestCase):
+class RetrieveReleasesByPublicAPITest(TestCase, mixin):
     def setUp(self):
         self.release = factories.ReleaseFactory()
-        self.client = Client()
+        self.request_factory = RequestFactory()
+        self.user = factories.UserFactory(groups=('registered',))
 
     def test_retrieve_release_list_as_html(self):
-        response = self.client.get('/html/release')
+        response = self.get('/html/release', views.release_list, mode='html')
         assert response.status_code == 200
         assert 'text/html' in response.get("content-type")
 
     def test_retrieve_release_as_html(self):
-        response = self.client.get('/html/release/%s' % self.release.id)
+        response = self.get('/html/release/%s' % self.release.id,
+                            views.release,
+                            pk=self.release.id,
+                            mode='html')
         assert response.status_code == 200
         assert 'text/html' in response.get("content-type")

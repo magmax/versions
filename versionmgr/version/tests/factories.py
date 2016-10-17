@@ -71,3 +71,17 @@ class ReleaseFactory(factory.django.DjangoModelFactory):
         model = models.Release
 
     name = factory.LazyAttribute(lambda x: faker.color_name())
+
+
+def get_for_model(model):
+    factories = [
+        ClusterFactory,
+        HostFactory,
+        CustomerFactory,
+        DeploymentFactory,
+        ReleaseFactory,
+    ]
+    for factory in factories:
+        if model == factory._get_model_class():
+            return factory()
+    raise Exception("There is no factory for model %s", model)
