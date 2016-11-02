@@ -13,190 +13,52 @@ from django.contrib import messages
 from django import db
 from django.core.mail import send_mail
 from django.conf import settings
-from . import models
+from rest_framework import viewsets
+
+from version import models, serializers, permissions
 
 logger = logging.getLogger(__name__)
 
+
+class ClusterViewSet(viewsets.ModelViewSet):
+    queryset = models.Cluster.objects.all()
+    serializer_class = serializers.ClusterWithDepsSerializer
+    permission_classes = (permissions.IsRegistered, )
+
+
+class HostViewSet(viewsets.ModelViewSet):
+    queryset = models.Host.objects.all()
+    serializer_class = serializers.HostWithDepsSerializer
+    permission_classes = (permissions.IsRegistered, )
+
+
+class DeploymentViewSet(viewsets.ModelViewSet):
+    queryset = models.Deployment.objects.all()
+    serializer_class = serializers.DeploymentWithDepsSerializer
+    permission_classes = (permissions.IsRegistered, )
+
+
+class ApplicationViewSet(viewsets.ModelViewSet):
+    queryset = models.Application.objects.all()
+    serializer_class = serializers.ApplicationWithDepsSerializer
+    permission_classes = (permissions.IsRegistered, )
+
+
+class VersionViewSet(viewsets.ModelViewSet):
+    queryset = models.Version.objects.all()
+    serializer_class = serializers.VersionWithDepsSerializer
+    permission_classes = (permissions.IsRegistered, )
+
+
+class ComponentViewSet(viewsets.ModelViewSet):
+    queryset = models.Component.objects.all()
+    serializer_class = serializers.ComponentWithDepsSerializer
+    permission_classes = (permissions.IsRegistered, )
 
 
 class UnserializationException(Exception):
     def __init__(self, got, expected):
         super().__init__('Expected %s, but got %s' % (expected, got))
-
-
-class ObjectView(object):
-    name_view_map = {}  # map with {property-name: view-class-name} format
-    foreign_keys = {}
-
-    def __init__(self):
-        super()
-        for k in self.foreign_keys:
-            setattr(self, k, None)
-        for k, v in self.name_view_map.items():
-            setattr(self, k, [])
-
-    @classmethod
-    def from_model(cls, model):
-        result = cls()
-        for k in cls.fields:
-            setattr(result, k, getattr(model, k))
-        for name, viewclass in cls.foreign_keys.items():
-            depmodel = getattr(model, name)
-            setattr(result, name, viewclass.from_model(depmodel))
-        for name, viewclass in cls.name_view_map.items():
-            for depmodel in getattr(model, name).all():
-                view = viewclass.from_model(depmodel)
-                getattr(result, name).append(view)
-        return result
-
-    @classmethod
-    def from_json(cls, _json):
-        return cls.from_dict(json.loads(_json))
-
-    @classmethod
-    def from_dict(cls, _dict):
-        if _dict.get('type') != str(cls):
-            raise UnserializationException(cls, _dict.get('type'))
-        result = cls()
-        for k in cls.fields:
-            setattr(result, k, _dict.get(k))
-        for name, viewclass in cls.name_view_map.items():
-            for x in _dict.get(name, []):
-                getattr(result, name).append(viewclass.from_dict(x))
-        return result
-
-    def to_dict(self):
-        result = dict(type=str(self.__class__))
-        for k in self.fields:
-            result[k] = getattr(self, k, None)
-        for name in self.name_view_map:
-            result[name] = [x.to_dict() for x in getattr(self, name)]
-        return result
-
-    def to_json(self):
-        return json.dumps(self.to_dict())
-
-
-class AttributeView(ObjectView):
-    fields = ('id', 'name', 'value')
-
-
-class ClusterView(ObjectView):
-    fields = ('id', 'name')
-
-
-class HostView(ObjectView):
-    fields = ('id', 'name', 'label')
-
-
-class DeploymentView(ObjectView):
-    fields = ('id', 'name', 'label')
-
-
-class ApplicationView(ObjectView):
-    fields = ('id', 'name', 'label', 'description')
-
-
-class VersionView(ObjectView):
-    fields = ('id', 'name')
-
-
-class ServiceView(ObjectView):
-    fields = ('id', )
-
-
-class CustomerView(ObjectView):
-    fields = ('id', 'name')
-
-
-class ReleaseView(ObjectView):
-    fields = ('id', 'name')
-
-
-class ClusterWithHostsView(ClusterView):
-    name_view_map = dict(
-        hosts=HostView,
-    )
-
-
-class ServiceWithDepsView(ServiceView):
-    foreign_keys = dict(
-        host=HostView,
-        deployment=DeploymentView,
-        application=ApplicationView,
-        version=VersionView,
-    )
-
-
-class ClusterDetail(VersionView):
-    name_view_map = dict(
-        attributes=AttributeView,
-        hosts=HostView,
-    )
-
-
-class HostDetail(HostView):
-    foreign_keys = dict(
-        cluster = ClusterView,
-    )
-    name_view_map = dict(
-        attributes=AttributeView,
-    )
-
-class VersionDetail(VersionView):
-    name_view_map = dict(
-        attributes=AttributeView,
-        services=ServiceWithDepsView,
-    )
-
-
-class DeploymentDetail(DeploymentView):
-    name_view_map = dict(
-        attributes=AttributeView,
-        services=ServiceWithDepsView,
-    )
-
-
-class ApplicationDetail(ApplicationView):
-    name_view_map = dict(
-        attributes=AttributeView,
-        services=ServiceWithDepsView,
-    )
-
-
-class CustomerDetail(CustomerView):
-    name_view_map = dict(
-        attributes=AttributeView,
-        deployments=DeploymentView,
-    )
-
-
-class ReleaseDetail(ReleaseView):
-    name_view_map = dict(
-        attributes=AttributeView,
-        services=ServiceView,
-    )
-
-
-def generic_list(view, model, order_by):
-    return [
-        view.from_model(x)
-        for x in model.objects.order_by(*order_by)
-    ]
-
-
-def to_dict(obj):
-    if isinstance(obj, ObjectView):
-        return obj.to_dict()
-    if isinstance(obj, list):
-        return [to_dict(x) for x in obj]
-    if isinstance(obj, dict):
-        return dict((k, to_dict(v)) for k, v in obj.items())
-    return obj
-
-
-def to_json(obj):
-    return json.dumps(obj, default=to_dict)
 
 
 @require_POST

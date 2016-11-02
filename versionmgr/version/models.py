@@ -1,23 +1,29 @@
 from django.db import models
+from django.contrib.contenttypes.fields import GenericForeignKey, GenericRelation
+from django.contrib.contenttypes.models import ContentType
+
+
+class Attribute(models.Model):
+    name = models.CharField(max_length=100)
+    value = models.TextField()
+
+    content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
+    object_id = models.PositiveIntegerField()
+    content_object = GenericForeignKey('content_type', 'object_id')
+
+    def __str__(self):
+        return self.name
 
 
 class Cluster(models.Model):
     name = models.CharField(max_length=100)
+    attributes = GenericRelation(Attribute)
 
     def __str__(self):
         return self.name
 
     def ordered_attributes(self):
         return self.attributes.order_by('name')
-
-
-class ClusterAttribute(models.Model):
-    name = models.CharField(max_length=100)
-    value = models.TextField()
-    cluster = models.ForeignKey(Cluster, related_name="attributes")
-
-    def __str__(self):
-        return self.name
 
 
 class Host(models.Model):
@@ -29,15 +35,7 @@ class Host(models.Model):
         null=True,
         related_name="hosts",
     )
-
-    def __str__(self):
-        return self.name
-
-
-class HostAttribute(models.Model):
-    name = models.CharField(max_length=100)
-    value = models.TextField()
-    host = models.ForeignKey(Host, related_name="attributes")
+    attributes = GenericRelation(Attribute)
 
     def __str__(self):
         return self.name
@@ -51,28 +49,11 @@ class Deployment(models.Model):
         return self.label or self.name
 
 
-class DeploymentAttribute(models.Model):
-    name = models.CharField(max_length=100)
-    value = models.TextField()
-    deployment = models.ForeignKey(Deployment, related_name="attributes")
-
-    def __str__(self):
-        return self.name
-
-
 class Application(models.Model):
     name = models.CharField(max_length=100)
     label = models.CharField(max_length=100, blank=True, null=True)
     description = models.CharField(max_length=200, blank=True, null=True)
-
-    def __str__(self):
-        return self.name
-
-
-class ApplicationAttribute(models.Model):
-    name = models.CharField(max_length=100)
-    value = models.TextField()
-    application = models.ForeignKey(Application, related_name="attributes")
+    attributes = GenericRelation(Attribute)
 
     def __str__(self):
         return self.name
@@ -123,26 +104,8 @@ class Customer(models.Model):
         return self.name
 
 
-class CustomerAttribute(models.Model):
-    name = models.CharField(max_length=100)
-    value = models.TextField()
-    customer = models.ForeignKey(Customer, related_name="attributes")
-
-    def __str__(self):
-        return self.name
-
-
 class Product(models.Model):
     name = models.CharField(max_length=100)
-
-    def __str__(self):
-        return self.name
-
-
-class ProductAttribute(models.Model):
-    name = models.CharField(max_length=100)
-    value = models.TextField()
-    product = models.ForeignKey(Product, related_name="attributes")
 
     def __str__(self):
         return self.name
@@ -151,15 +114,6 @@ class ProductAttribute(models.Model):
 class Release(models.Model):
     name = models.CharField(max_length=100)
     services = models.ManyToManyField(Service, related_name="releases")
-
-    def __str__(self):
-        return self.name
-
-
-class ReleaseAttribute(models.Model):
-    name = models.CharField(max_length=100)
-    value = models.TextField()
-    release = models.ForeignKey(Release, related_name="attributes")
 
     def __str__(self):
         return self.name

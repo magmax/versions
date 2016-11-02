@@ -1,0 +1,56 @@
+{% extends "base.html"%}
+
+{% block content %}
+<div class="container">
+
+  <div class="pull-right">
+    {% if profile == user %}
+    <p class="label label-primary">Mi perfil</p>
+    {% else %}
+    <div>
+      {% if profile.profile in user.profile.follows.all %}
+      <a href="{% url 'profile_unfollow' profile.id %}" class="btn btn-primary">Dejar de seguir</a>
+      {% else %}
+      <a href="{% url 'profile_follow' profile.id %}" class="btn btn-primary">Seguir</a>
+      {% endif %}
+    </div>
+    {% endif %}
+  </div>
+
+  <div class="row">
+
+    <h1>{{ profile }}</h1>
+
+    <ul>
+      <li>Sigue a: {{ profile.profile.follows.count }} </li>
+      <li>Seguidores: {{ profile.profile.followers.count }} </li>
+      <li>Preguntas: {{ profile.profile.count_questions }}</li>
+      <li>Respuestas: {{ profile.profile.count_answers }}</li>
+    </ul>
+
+  </div>
+
+  <div class="row">
+    <h2>Siguiendo a</h2>
+  </div>
+  <div class="row">
+    {% for follow in profile.profile.follows.all %}
+    <div class="col-md-2">
+      {% include 'partial_profile.html' with profile=follow %}
+    </div>
+    {% endfor %}
+  </div>
+
+  <div class="row">
+    <h2>Seguidores</h2>
+  </div>
+  <div class="row">
+      {% for follow in profile.profile.followers.all %}
+      <div class="col-md-2">
+        {% include 'partial_profile.html' with profile=follow %}
+      </div>
+      {% endfor %}
+  </div>
+</div>
+
+{% endblock %}
