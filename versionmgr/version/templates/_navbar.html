@@ -12,13 +12,8 @@
       <a class="navbar-brand" href="{{ url_home }}">Board</a>
     </div>
     <div class="navbar-collapse collapse">
-      <ul class="nav navbar-nav">
+      <ul class="nav navbar-nav" id="menu">
         <li><a href="{{ url_home }}">Home</a></li>
-        <li><a href="{% url 'customers' %}">Customers</a></li>
-        <li><a href="{% url 'clusters' %}">Clusters</a></li>
-        <li><a href="{% url 'hosts' %}">Hosts</a></li>
-        <li><a href="{% url 'deployments' %}">Deployments</a></li>
-        <li><a href="{% url 'releases' %}">Releases</a></li>
       </ul>
       <ul class="nav navbar-nav pull-right">
         <li><a href="{% url 'logout' %}">Logout</a></li>

@@ -56,6 +56,12 @@ class ComponentViewSet(viewsets.ModelViewSet):
     permission_classes = (permissions.IsRegistered, )
 
 
+class ServiceViewSet(viewsets.ModelViewSet):
+    queryset = models.Service.objects.all()
+    serializer_class = serializers.ServiceWithDepsSerializer
+    permission_classes = (permissions.IsRegistered, )
+
+
 class UnserializationException(Exception):
     def __init__(self, got, expected):
         super().__init__('Expected %s, but got %s' % (expected, got))
@@ -153,162 +159,16 @@ def registerConfirmView(request, key):
 
 
 @require_GET
-def index(request, mode="json"):
+def index(request):
     if not request.user.is_authenticated():
         return redirect_to_login(request.get_full_path())
 
-    if mode == 'json':
-        return JsonResponse()
     return render(request, 'logged.html')
 
 
 @require_GET
-@permission_required('version.view_version')
-def cluster(request, pk, mode="json"):
-    c = models.Cluster.objects.get(pk=pk)
-    data = ClusterDetail.from_model(c)
-    if mode == 'json':
-        return JsonResponse(to_dict(dict(cluster=data)))
-    return render(request, 'cluster.html', dict(cluster=data))
+def javascript(request):
+    if not request.user.is_authenticated():
+        return redirect_to_login(request.get_full_path())
 
-
-@require_GET
-@permission_required('version.view_version')
-def cluster_list(request, mode="json"):
-    clusters = []
-    for cluster in models.Cluster.objects.all():
-        clusters.append(
-            ClusterWithHostsView.from_model(cluster)
-        )
-    # out of any cluster
-    standalone = [
-        HostView.from_model(x)
-        for x in models.Host.objects.filter(cluster__isnull=True)
-    ]
-
-    if mode == 'json':
-        return JsonResponse(to_dict(dict(clusters=clusters,
-                                         standalone=standalone)))
-    return render(request, 'clusters.html',
-                  dict(clusters=clusters, standalone=standalone))
-
-
-@require_GET
-@permission_required('version.view_version')
-def host(request, pk, mode="json"):
-    h = models.Host.objects.get(pk=pk)
-    data = HostDetail.from_model(h)
-    if mode == 'json':
-        return JsonResponse(dict(host=data))
-    return render(request, 'host.html', dict(host=data))
-
-
-@require_GET
-@permission_required('version.view_version')
-def host_list(request, mode="json"):
-    hosts = generic_list(HostView, models.Host, ['name'])
-
-    if mode == 'json':
-        return JsonResponse(dict(hosts=[h.to_dict() for h in hosts]))
-    return render(request, 'hosts.html', dict(hosts=hosts))
-
-
-@require_GET
-@permission_required('version.view_version')
-def application(request, pk, mode="json"):
-    a = models.Application.objects.get(pk=pk)
-    data = ApplicationDetail.from_model(a)
-    if mode == 'json':
-        return JsonResponse(dict(app=data))
-    return render(request, 'application.html', dict(app=data))
-
-
-@require_GET
-@permission_required('version.view_version')
-def application_list(request, mode="json"):
-    objs = generic_list(ApplicationView, models.Application, ['label', 'name'])
-
-    if mode == 'json':
-        return JsonResponse(dict(applications=[x.to_dict() for x in objs]))
-    return render(request, 'applications.html', dict(applications=objs))
-
-
-@require_GET
-@permission_required('version.view_version')
-def deployment(request, pk, mode="json"):
-    d = models.Deployment.objects.get(pk=pk)
-    data = DeploymentDetail.from_model(d)
-
-    if mode == 'json':
-        return JsonResponse(dict(deployment=data))
-    return render(request, 'deployment.html', dict(dep=data))
-
-
-@require_GET
-@permission_required('version.view_version')
-def deployment_list(request, mode="json"):
-    objs = generic_list(DeploymentView, models.Deployment, ['label', 'name'])
-
-    if mode == 'json':
-        return JsonResponse(dict(applications=[x.to_dict() for x in objs]))
-    return render(request, 'deployments.html', dict(deployments=objs))
-
-
-@require_GET
-@permission_required('version.view_version')
-def version(request, pk, mode="json"):
-    v = models.Version.objects.get(pk=pk)
-    version = VersionDetail.from_model(v)
-    if mode == 'json':
-        return JsonResponse(dict(version=version))
-    return render(request, 'version.html', dict(version=version))
-
-
-@require_GET
-@permission_required('version.view_version')
-def version_list(request, mode="json"):
-    objs = generic_list(VersionView, models.Version, ['name'])
-
-    if mode == 'json':
-        return JsonResponse(dict(versions=[x.to_dict() for x in objs]))
-    return render(request, 'versions.html', dict(versions=objs))
-
-
-@require_GET
-@permission_required('version.view_version')
-def customer(request, pk, mode="json"):
-    v = models.Customer.objects.get(pk=pk)
-    customer = CustomerDetail.from_model(v)
-    if mode == 'json':
-        return JsonResponse(dict(customer=customer))
-    return render(request, 'customer.html', dict(customer=customer))
-
-
-@require_GET
-@permission_required('version.view_version')
-def customer_list(request, mode="json"):
-    objs = generic_list(CustomerView, models.Customer, ['name'])
-
-    if mode == 'json':
-        return JsonResponse(dict(customers=[x.to_dict() for x in objs]))
-    return render(request, 'customers.html', dict(customers=objs))
-
-
-@require_GET
-@permission_required('version.view_version')
-def release(request, pk, mode="json"):
-    v = models.Release.objects.get(pk=pk)
-    release = ReleaseDetail.from_model(v)
-    if mode == 'json':
-        return JsonResponse(dict(release=release))
-    return render(request, 'release.html', dict(release=release))
-
-
-@require_GET
-@permission_required('version.view_version')
-def release_list(request, mode="json"):
-    objs = generic_list(ReleaseView, models.Release, ['name'])
-
-    if mode == 'json':
-        return JsonResponse(dict(releases=[x.to_dict() for x in objs]))
-    return render(request, 'releases.html', dict(releases=objs))
+    return render(request, 'javascript.js')

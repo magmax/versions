@@ -56,7 +56,7 @@ class HostSerializer(serializers.HyperlinkedModelSerializer):
 
 class DeploymentSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
-        model = models.Host
+        model = models.Deployment
         fields = ('url', 'id', 'name', 'label')
 
     def create(self, validated_data):
@@ -73,7 +73,7 @@ class ApplicationSerializer(serializers.HyperlinkedModelSerializer):
     attributes = AttributeSerializer(many=True, read_only=True)
 
     class Meta:
-        model = models.Host
+        model = models.Application
         fields = ('url', 'id', 'name', 'label', 'description', 'attributes')
 
     def create(self, validated_data):
@@ -89,7 +89,7 @@ class ApplicationSerializer(serializers.HyperlinkedModelSerializer):
 
 class VersionSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
-        model = models.Host
+        model = models.Version
         fields = ('url', 'id', 'name')
 
     def create(self, validated_data):
@@ -106,8 +106,15 @@ class ComponentSerializer(serializers.HyperlinkedModelSerializer):
     version = VersionSerializer(many=False, read_only=True)
 
     class Meta:
-        model = models.Host
-        fields = ('url', 'application', 'version')
+        model = models.Component
+        fields = ('url', 'id', 'application', 'version')
+
+
+class ServiceSerializer(serializers.HyperlinkedModelSerializer):
+    component = ComponentSerializer(many=False, read_only=True)
+    class Meta:
+        model = models.Service
+        fields = ('url', 'id', 'updated', 'arguments', 'component')
 
 
 class ClusterWithDepsSerializer(ClusterSerializer):
@@ -136,16 +143,20 @@ class DeploymentWithDepsSerializer(HostSerializer):
 
 
 class ApplicationWithDepsSerializer(HostSerializer):
+    components = ComponentSerializer(many=True, read_only=True)
     class Meta:
         model = models.Application
-        fields = ('url', 'id', 'name', 'label', 'description', 'attributes')
+        fields = ('url', 'id', 'name', 'label', 'description', 'attributes', 'components')
         depth = 1
 
 
 class VersionWithDepsSerializer(HostSerializer):
+    components = ComponentSerializer(many=True, read_only=True)
+    services = ServiceSerializer(many=True, read_only=True)
+
     class Meta:
         model = models.Version
-        fields = ('url', 'id', 'name')
+        fields = ('url', 'id', 'name', 'components', 'services')
         depth = 1
 
 
@@ -155,8 +166,19 @@ class ComponentWithDepsSerializer(HostSerializer):
 
     class Meta:
         model = models.Component
-        fields = ('url', 'id', 'application', 'version')
+        fields = ('url', 'id', 'application', 'version', 'services')
         depth = 1
+
+
+class ServiceWithDepsSerializer(serializers.HyperlinkedModelSerializer):
+    host = HostSerializer(many=False, read_only=True)
+    component = ComponentSerializer(many=False, read_only=True)
+    version = VersionSerializer(many=False, read_only=True)
+    deployment = DeploymentSerializer(many=False, read_only=True)
+
+    class Meta:
+        model = models.Service
+        fields = ('url', 'id', 'updated', 'arguments', 'host', 'component', 'version', 'deployment')
 
 
 class AttributeListSerializer(serializers.ModelSerializer):

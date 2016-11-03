@@ -25,6 +25,8 @@
     {% endblock breadcrumb_main %}
 
     {% block content %}
+    <div id="content">
+    </div>
     {% endblock %}
 
   </div>
@@ -32,10 +34,6 @@
   {% block scripts %}
   {% endblock %}
 
-  <script>
-    $(document).ready(function(){
-      $('ul.nav li a[href="' + location.pathname +'"]').parent().addClass('active');
-    });
-  </script>
+  <script src="{% url 'javascript' %}"></script>
 </body>
 </html>
