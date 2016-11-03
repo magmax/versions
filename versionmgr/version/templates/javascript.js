@@ -68,10 +68,11 @@ var NavigationBar = function(){
     for (var name in links) {
       var link = $('<a>', {
         href: '#',
+        'class': 'nav-link',
         text: capitalize(name),
       });
       link.click({url: links[name]}, _content.load);
-      var item = $('<li>');
+      var item = $('<li>', {'class': 'nav-item'});
 
       item.append(link);
       _anchor.append(item);
