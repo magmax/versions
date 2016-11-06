@@ -28,7 +28,7 @@ router.register(r'deployment', views.DeploymentViewSet)
 router.register(r'application', views.ApplicationViewSet)
 router.register(r'version', views.VersionViewSet)
 router.register(r'component', views.ComponentViewSet)
-router.register(r'service', views.ComponentViewSet)
+router.register(r'service', views.ServiceViewSet)
 
 urlpatterns = [
     url(r'^api/', include(router.urls)),

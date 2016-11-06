@@ -76,7 +76,7 @@ class Component(models.Model):
     application = models.ForeignKey(Application, related_name="components")
 
     def __str__(self):
-        return self.name
+        return "%s (%s)" % (self.application, self.version)
 
 
 class Service(models.Model):
@@ -89,9 +89,8 @@ class Service(models.Model):
     updated = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return "%s (%s) at %s/%s" % (
-            self.application,
-            self.version,
+        return "%s at %s/%s" % (
+            self.component,
             self.host,
             self.deployment,
         )

@@ -10,23 +10,36 @@ var Content = function(){
   };
 
   var show = function(anchor, content) {
+    console.log(content);
+    if (content === null) {
+      return;
+    }
     if ($.isPlainObject(content)) {
+      var title = $('<a>', {href: '#', text: content['label'] ? content['label'] : content['name']});
+      var card = $('<div>', {'class': 'card'});
+      var cardTitle = $('<div>', {'class': 'card-header'});
+      var cardBody = $('<div>', {'class': 'card-block'});
+      title.click({url: content['url']}, load);
+      card.append(cardTitle);
+      card.append(cardBody);
+      cardTitle.append(title);
+      anchor.append(card);
 
       for (var i in content) {
-        if ($.inArray(i, ['id', 'label', 'url']) != -1) {
+        if ($.inArray(i, ['id', 'label', 'name', 'url']) != -1) {
           continue;
         }
-        if ( '' == content[i]) {
+        if ( content[i] == '' || content[i] == null || content[i] == [] || content[i] == {}) {
           continue;
         }
-        var card = $('<div>', {'class': 'card'});
-        var cardTitle = $('<div>', {'class': 'card-header', text: i});
-        var cardBody = $('<div>', {'class': 'card-block'});
-        card.append(cardTitle);
-        card.append(cardBody);
-        anchor.append(card);
 
-        show(cardBody, content[i]);
+        var div = $('<div>', {'class': 'row'});
+        var div1 = $('<div>', {'class': 'col-md-2', text: i});
+        var div2 = $('<div>', {'class': 'col-md-10'});
+        div.append(div1);
+        div.append(div2);
+        cardBody.append(div);
+        show(div2, content[i]);
       }
     } else if ($.isArray(content)) {
       var ul = $('<ul>', {'class': 'list-group', 'style': 'list-style-type: none'});
@@ -37,15 +50,16 @@ var Content = function(){
         show(li, content[i]);
       }
     } else {
-      anchor.html($('<p>', {text: content}));
+      anchor.html($('<span>', {text: content}));
     }
   };
 
   var load = function(event) {
     var url = event.data.url;
     clear();
+    history.pushState(null, null, '#' + url);
     $.get(url, function(response){
-      show(_anchor, response.results);
+      show(_anchor, response.results ? response.results : response);
     });
   };
 
