@@ -1,3 +1,4 @@
+-e git+https://github.com/celery/django-celery-beat.git#egg=django-celery-beat
 Django   == 1.10
 markdown == 2.6.6
 djangorestframework == 3.5.1
@@ -6,3 +7,4 @@ coreapi == 2.0.8
 rest-framework-generic-relations == 1.1.0
 psycopg2
 celery
+redis

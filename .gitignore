@@ -1,8 +1,10 @@
 venv/
+*.pid
 *~
 db.sqlite3
 .coverage
 __pycache__/
+src/
 .cache/
 *.log
 web/app/*.js

@@ -39,6 +39,8 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'django.contrib.humanize',
 
+    'django_celery_beat',
+
     'rest_framework',
     'rest_framework_swagger',
     'generic_relations',
@@ -161,3 +163,12 @@ REST_FRAMEWORK = {
         'rest_framework.authentication.SessionAuthentication',
     )
 }
+
+CELERY_BROKER_URL = 'redis://redis/0'
+CELERY_RESULT_BACKEND = 'redis://redis/1'
+
+CELERY_TIMEZONE = 'Europe/Madrid'
+CELERY_ENABLE_UTC = True
+
+CELERY_BEAT_MAX_LOOP_INTERVAL = 2
+CELERY_BEAT_SCHEDULER = 'django'
