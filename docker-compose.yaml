@@ -16,6 +16,7 @@ services:
     build: docker/django
     ports:
       - 8000:80
+      - 8001:5555
     environment:
       - POSTGRES_USER=django
       - POSTGRES_PASSWORD=django
